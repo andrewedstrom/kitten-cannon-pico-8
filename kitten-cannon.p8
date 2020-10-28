@@ -5,7 +5,7 @@ __lua__
 -- by andrew edstrom
 
 local player
-local gravity = 0.08
+local gravity = 0.4
 
 function _init()
     player = make_player()
@@ -24,24 +24,33 @@ end
 
 function make_player()
     return {
-        x=64,
-        y=30,
+        x=13,
+        y=13,
         dx=0,
         dy=0,
         w=26,
         h=21,
-        bounce=1,
+        bounce=0.8,
+        on_ground=false,
         update=function(self)
             -- gravity
             self.dy = self.dy + gravity
 
-            if hit_ground(self.x, self.y, self.w, self.h) then
-                self.dy = 0
+            if hit_ground(self.x+self.dx, self.y+self.dy, self.w, self.h) then
+                self.dy = self.dy * -self.bounce
+                if abs(self.dy) < 1.8 then
+                    self.on_ground=true
+                end
+
                 self.dx = self.dx * .6
             end
 
-            self.y = self.y + self.dy
-            self.x = self.x + self.dx
+            if self.on_ground then
+                self.y = 103-self.h
+            else
+                self.y = self.y + self.dy
+                self.x = self.x + self.dx
+            end
         end,
         draw=function(self)
             palt(0, false)
