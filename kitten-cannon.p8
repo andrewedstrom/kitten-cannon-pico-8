@@ -5,7 +5,7 @@ __lua__
 -- by andrew edstrom
 
 local player
-local gravity = 0.06
+local gravity = 0.08
 
 function _init()
     player = make_player()
@@ -32,61 +32,49 @@ function make_player()
         h=21,
         bounce=1,
         update=function(self)
-            -- if not solid_area(a.x + a.dx, a.y, a.w, a.h) then
-            --     a.x += a.dx
-            -- else
-            --     -- otherwise bounce
-            --     a.dx *= -a.bounce
-            --     sfx(2)
-            -- end
+            -- gravity
+            self.dy = self.dy + gravity
 
-            -- ditto for y
-            if not solid_area(self.x, self.y + self.dy, self.w, self.h) then
-                self.y = self.y + self.dy
-            else
-                self.dy =  self.dy * -self.bounce
+            if hit_ground(self.x, self.y, self.w, self.h) then
+                self.dy = 0
+                self.dx = self.dx * .6
             end
 
-            -- gravity and friction
-            self.dy = self.dy + gravity
-            self.dy = self.dy * 0.95
+            self.y = self.y + self.dy
+            self.x = self.x + self.dx
         end,
         draw=function(self)
             palt(0, false)
             palt(15, true)
-            sspr(8, 0, self.w, self.h, self.x, self.y)
+            sspr(8, 0, self.w+1, self.h+1, self.x, self.y)
+
+            -- rect(self.x, self.y, self.x+self.w, self.y+self.h, rect_col)
+
             pal()
         end
     }
 end
 
--- collision detection
+function hit_ground(x,y,w,h)
+    local i
 
--- for any given point on the
--- map, true if there is wall
--- there.
-function solid(x, y)
-    -- grab the cell value
-    val=mget(x, y)
+    for i=x, x+w do
+        local top_edge_cell = mget(i/8, y/8)
+        local bottom_edge_cell = mget(i/8, (y+h)/8)
+        if fget(top_edge_cell, 1) or fget(bottom_edge_cell, 1) then
+            return true
+        end
+    end
 
-    -- check if flag 1 is set (the
-    -- orange toggle button in the
-    -- sprite editor)
-    return fget(val, 1)
-end
+    for i=y, y+h do
+        local left_edge_cell = mget(x/8, i/8)
+        local right_edge_cell = mget((x+w)/8, i/8)
+        if fget(left_edge_cell, 1) or fget(right_edge_cell, 1) then
+            return true
+        end
+    end
 
-   -- solid_area
-   -- check if a rectangle overlaps
-   -- with any walls
-
-   --(this version only works for
-   --actors less than one tile big)
-function solid_area(x,y,w,h)
-    return
-        solid(x-w,y-h) or
-        solid(x+w,y-h) or
-        solid(x-w,y+h) or
-        solid(x+w,y+h)
+    return false
 end
 
 __gfx__
