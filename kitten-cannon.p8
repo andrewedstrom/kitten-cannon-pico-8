@@ -16,9 +16,9 @@ function _draw()
     cls()
     map(0,0,0,0,16,16)
 
+    palt(0, false)
     palt(15,true)
     sspr(8,0,26,21,64,64)
-
 end
 
 __gfx__
