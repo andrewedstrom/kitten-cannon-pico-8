@@ -32,7 +32,7 @@ function _draw()
 
     -- hud
     camera(0,0)
-    print(flr(feet_traveled) .. "ft", 8, 8)
+    print(flr(feet_traveled) .. "ft", 8, 8, 7)
 end
 
 function camera_follow()
