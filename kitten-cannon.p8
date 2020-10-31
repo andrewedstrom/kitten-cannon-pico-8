@@ -123,7 +123,7 @@ function make_player()
             local halfway_through_second_to_last_map_screen = 104
             if self.x >= halfway_through_second_to_last_map_screen*8 then
                 local how_far_over = self.x-(halfway_through_second_to_last_map_screen*8)
-                self.x = 24*8 + how_far_over
+                self.x = 24 * 8 + how_far_over
             end
         end,
         draw=function(self)
@@ -173,18 +173,6 @@ end
 -- It mimics native spr() and therefore doesn't use pico-boots math vectors.
 -- Unlike spr() though, it takes sprite location coords i, j as first arguments
 --  instead of sprite ID n, but conversion is trivial.
--- Adapted from jihem's spr_r function for "Rotating a sprite around its center"
--- https://www.lexaloffle.com/bbs/?pid=52525
--- Changes:
--- - replaced 8 with tile_size for semantics (no behavior change)
--- - w and h don't default to 1 since we use this function with sprite_data which already defaults span to (1, 1)
--- - angle is passed directly as PICO-8 angle between 0 and 1 (no division by 360, counter-clockwise sign convention)
--- - support flipping
--- - support custom pivot (instead of always rotating around center)
--- - support transparent_color
--- - draw pixels even the farthest from the pivot (e.g. square corner to opposite corner)
---   by identifying target disc
--- - fixed yy<=sh -> yy<sh to avoid drawing an extra line from neighbor sprite
 function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle, transparent_color)
     -- to spare tokens, we don't give defaults to all values like angle = 0 or transparent_color = 0
     --  user should call function with all parameters; if not using angle, we recommend spr()
