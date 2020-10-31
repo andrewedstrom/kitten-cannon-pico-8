@@ -4,35 +4,53 @@ __lua__
 -- kitten cannon
 -- by andrew edstrom
 
+-- todo
+-- kitten comes out of barrel
+-- barrel angle determines initial kitten angle
+-- hit x at right time to determine initial velocity
+-- trampolines
+-- tnt
+-- fly traps
+-- score when you come to a stop
+-- explosion
+
 local player
 local gravity = 0.4
 local camera_pos
 local feet_traveled
 local cannon
+local game_state --  "aiming", "flying", "landed"
 
 function _init()
-    player = make_player()
     cannon = make_cannon()
-    feet_traveled = 0
+    game_state = "aiming"
 end
 
 function _update60()
-    -- player:update()
+    if game_state ~= "aiming" then
+        player:update()
+    end
     cannon:update()
 end
 
 function _draw()
     cls()
 
-    camera_follow()
+    if game_state ~= "aiming" then
+        camera_follow()
+    end
 
     map(0, 0, 0, 0, 128, 16)
     cannon:draw()
-    -- player:draw()
+    if game_state ~= "aiming" then
+        player:draw()
+    end
 
     -- hud
     camera(0,0)
-    print(flr(feet_traveled) .. "ft", 8, 8, 7)
+    if game_state ~= "aiming" then
+        print(flr(player.feet_traveled) .. "ft", 8, 8, 7)
+    end
 end
 
 function camera_follow()
@@ -42,16 +60,13 @@ end
 
 function make_cannon()
     return {
-        x=23,
-        y=90,
+        x=13,
+        y=94,
         w=62,
         h=11,
         angle=0,
         draw=function(self)
-            palt(0, false)
-            palt(15, true)
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
-            pal()
         end,
         update=function(self)
             if btn(3) then
@@ -60,14 +75,20 @@ function make_cannon()
             if btn(2) then
                 self.angle = self.angle + 0.005
             end
+            -- limit cannon angle
             self.angle = mid(0,self.angle,0.2)
+
+            if btn(4) or btn(5) then
+                game_state = "flying"
+                player=make_player()
+            end
         end
     }
 end
 
 function make_player()
     return {
-        starting_x=13,
+        feet_traveled=0,
         x=13,
         y=70,
         dx=5,
@@ -84,6 +105,7 @@ function make_player()
                 self.dy = self.dy * -self.bounce
                 if abs(self.dy) < 1.8 then
                     self.on_ground=true
+                    game_state = "landed"
                 end
 
                 self.dx = self.dx*0.9
@@ -91,10 +113,9 @@ function make_player()
 
             if self.on_ground then
                 self.y = 103-self.h
-
             else
                 self.y = self.y + self.dy
-                feet_traveled += self.dx / 8
+                self.feet_traveled += self.dx / 8
                 self.x = self.x + self.dx
             end
 
