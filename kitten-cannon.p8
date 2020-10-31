@@ -18,6 +18,7 @@ end
 
 function _update60()
     -- player:update()
+    cannon:update()
 end
 
 function _draw()
@@ -41,16 +42,30 @@ end
 
 function make_cannon()
     return {
-        x=13,
-        y=70,
+        x=23,
+        y=80,
+        w=62,
+        h=11,
+        angle=0,
         draw=function(self)
             palt(0, false)
             palt(15, true)
-            sspr(8,48,62,11,self.x,self.y)
+            -- sspr(8,48,62,11,self.x,self.y)
+
+            spr_r(0, 6, self.x, self.y, 8, 2, false, false, 0, 0, self.angle, 12)
+
+            -- spr_r(96,self.x,self.y,angle,self.w,self.h)
+            -- spr_r(48,self.x,self.y,angle,4,4)
             pal()
         end,
         update=function(self)
-
+            if btn(3) then
+                self.angle = self.angle - 0.01
+            end
+            if btn(2) then
+                self.angle = self.angle + 0.01
+            end
+            self.angle = mid(0,self.angle,0.2)
         end
     }
 end
@@ -129,66 +144,275 @@ function hit_ground(x,y,w,h)
     return false
 end
 
+
+-- function spr_r(s,x,y,a,w,h)
+--     sw=(w or 1)
+--     sh=(h or 1)
+--     sx=(s%16)*8
+--     sy=flr(s/16)*8
+--     x0=flr(0.5*sw)
+--     y0=flr(0.5*sh)
+--     a=a/360
+--     sa=sin(a)
+--     ca=cos(a)
+--     for ix=0,sw-1 do
+--         for iy=0,sh-1 do
+--             dx=ix-x0
+--             dy=iy-y0
+--             xx=flr(dx*ca-dy*sa+x0)
+--             yy=flr(dx*sa+dy*ca+y0)
+--             if (xx>=0 and xx<sw and yy>=0 and yy<=sh) then
+--                 pset(x+ix, y+iy, sget(sx+xx,sy+yy))
+--             end
+--         end
+--     end
+-- end
+
+
+-- source: https://github.com/hsandt/pico-boots/blob/master/src/engine/render/sprite.lua
+--
+-- Draw a rotated sprite:
+--  located at tile (i ,j) in spritesheet, at (x, y) px on screen,
+--  spanning on w tiles to the right, h tiles to the bottom
+--  (like spr, w and h may be fractional to allow partial sprites, although not tested),
+--  optionally flipped on X and Y with flags flip_x and flip_y,
+--  offset by -(pivot_x, pivot_y) and rotated by angle around this pivot,
+--  ignoring transparent_color.
+-- It mimics native spr() and therefore doesn't use pico-boots math vectors.
+-- Unlike spr() though, it takes sprite location coords i, j as first arguments
+--  instead of sprite ID n, but conversion is trivial.
+-- Adapted from jihem's spr_r function for "Rotating a sprite around its center"
+-- https://www.lexaloffle.com/bbs/?pid=52525
+-- Changes:
+-- - replaced 8 with tile_size for semantics (no behavior change)
+-- - w and h don't default to 1 since we use this function with sprite_data which already defaults span to (1, 1)
+-- - angle is passed directly as PICO-8 angle between 0 and 1 (no division by 360, counter-clockwise sign convention)
+-- - support flipping
+-- - support custom pivot (instead of always rotating around center)
+-- - support transparent_color
+-- - draw pixels even the farthest from the pivot (e.g. square corner to opposite corner)
+--   by identifying target disc
+-- - fixed yy<=sh -> yy<sh to avoid drawing an extra line from neighbor sprite
+function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle, transparent_color)
+    -- to spare tokens, we don't give defaults to all values like angle = 0 or transparent_color = 0
+    --  user should call function with all parameters; if not using angle, we recommend spr()
+    --  to reduce CPU
+
+    local tile_size = 8
+
+    -- precompute pixel values from tile indices: sprite source top-left, sprite size
+    local sx = tile_size * i
+    local sy = tile_size * j
+    local sw = tile_size * w
+    local sh = tile_size * h
+
+    -- precompute angle trigonometry
+    local sa = sin(angle)
+    local ca = cos(angle)
+
+    -- in the operations below, we work "inside" pixels as much as possible (offset 0.5 from top-left corner)
+    --  then floor coordinates (or let PICO-8 functions auto-floor) at the last moment for more symmetrical results
+    -- if we work with integers directly, pivot used for rotation and flipping is
+    --  inside a pixel not at the cross between 4 pixels (what PICO-8 spr flip uses),
+    --  causing a slight offset
+    -- typical example: flipping a square sprite of span (1, 1) i.e. size (8, 8) and pivot (4, 4)
+    --  will preserve its bounding box; same for a 90-degrees rotation
+
+    -- precompute "target disc": where we must draw pixels of the rotated sprite (relative to (x, y))
+    -- the image of a rectangle rotated by any angle from 0 to 1 is a disc
+    -- when rotating around its center, the disc has radius equal to rectangle half-diagonal
+    -- when rotating around an excentered pivot, the disc has a bigger radius, equal to
+    --  the distance between the pivot and the farthest corner of the sprite rectangle
+    --  i.e. the magnitude of a vector of width: the biggest horizontal distance between pivot and rectangle left or right
+    --                                    height: the biggest vertical distance between pivot and rectangle top or bottom
+    -- (if pivot is a corner, it is the full diagonal length)
+    -- we need to compute this disc radius so we can properly draw the rotated sprite wherever it will "land" on the screen
+    -- (if we just draw on the rectangle area where the sprite originally is, we observe rectangle clipping)
+    -- actually measure distance between pivot and edge pixel center, so pivot vs 0.5 (start) or sw - 0.5 (end)
+    local max_dx = max(pivot_x, sw - pivot_x) - 0.5  -- actually (pivot_x - 0.5, sw - 0.5 - pivot_x) i.e. max horizontal distance from pivot to corner
+    local max_dy = max(pivot_y, sh - pivot_y) - 0.5  -- actually (pivot_y - 0.5, sh - 0.5 - pivot_y) i.e. max vertical distance from pivot to corner
+    local max_sqr_dist = max_dx * max_dx + max_dy * max_dy
+    -- ceil to be sure we reach enough pixels while avoiding fractions
+    -- subtract half for symmetrical operations, it's very important as it will affect
+    --  the values of dx and dy during the whole iteration
+    local max_dist_minus_half = ceil(sqrt(max_sqr_dist)) - 0.5
+
+    -- backward rendering: cover the whole target disc,
+    --  and determine which pixel of the source sprite should be represented
+    -- it's not trivial to iterate over a disc (you'd need trigonometry)
+    --  so instead, iterate over the target disc's bounding box
+    -- we work with relative offsets
+    for dx = - max_dist_minus_half, max_dist_minus_half do
+      for dy = - max_dist_minus_half, max_dist_minus_half do
+        -- optimization: we know that nothing should be drawn outside the target disc contained in the bounding box
+        --  so only consider pixels inside the target disc
+        -- the final source range check more below is the most important
+        if dx * dx + dy * dy <= max_sqr_dist then
+          -- prepare flip factors
+          local sign_x = flip_x and -1 or 1
+          local sign_y = flip_y and -1 or 1
+          -- compute pixel location on source sprite in spritesheet
+          -- this basically a reverse rotation matrix to find which pixel
+          --  on the original sprite should be represented
+
+          -- Known issue: luamin will remove brackets from expression a + b * (c + d)
+          -- so make sure to store b * (c + d) in an intermediate variable
+          -- https://github.com/mathiasbynens/luamin/issues/50
+          local rotated_dx = sign_x * ( ca * dx + sa * dy)
+          local rotated_dy = sign_y * (-sa * dx + ca * dy)
+
+          -- spare a few tokens by not flooring xx and yy
+          --  we should semantically, but fortunately sget does auto-floor arguments
+          local xx = pivot_x + rotated_dx
+          local yy = pivot_y + rotated_dy
+
+          -- make sure to never draw pixels from the spritesheet
+          --  that are outside the source sprite
+          -- simply check if the source pixel is located in the source sprite rectangle
+          if xx >= 0 and xx < sw and yy >= 0 and yy < sh then
+            -- get source pixel
+            local c = sget(sx + xx, sy + yy)
+            -- ignore if transparent color
+            if c ~= transparent_color then
+              -- set target pixel color to source pixel color
+              -- spare a few tokens by not flooring dx and dy, as pset also auto-floors arguments
+              pset(x + dx, y + dy, c)
+            end
+          end
+        end
+      end
+    end
+  end
+
 __gfx__
-00000000ffdd6fffffffffffffffffffffffffffccccccccccccccccccccccccccccccccbbbbbbbb000000000000000000000000000000000000000000000000
-00000000fd666fffffffffffffffffffffffffffcccbcccccccccccccccccccccccccccc33333333000000000000000000000000000000000000000000000000
-00700700fd666fffffffffffffffffffffffffffcccbcccccccccc3bcbcccccccccccccc33333333000000000000000000000000000000000000000000000000
-00077000d666ffffffffffffffffffffffffffffcc3b3cb3ccb3cb3bcb3cccbccccbcc3c33333333000000000000000000000000000000000000000000000000
-00077000d6ffffffffffffffdfffffdfffffffffbc3b3c3bc3b3cbbb3b3cccb3cbccbc3b33323322000000000000000000000000000000000000000000000000
-00700700d6fffffffffffffd5ddffd5dffffffffb33b3b3bbbb3bbbbbb3cccb3cbccb33b33223222000000000000000000000000000000000000000000000000
-00000000d6fffffffffffffd5666666dffffffffb3bb3b3bbbbbbbbbbbbcc3bbbbb3b33b32422442000000000000000000000000000000000000000000000000
-00000000d6ffffffffffffd666666666ffffffffbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb24444442000000000000000000000000000000000000000000000000
-00000000d666ffffffff000666066606600fffffccccccccccccccccccccccccbbbbbbbb44444444444444444444444400000000000000000000000000000000
-00000000fd66ffffffffffd6660666066fffffffccccccccccccccccccccccccbbbbbbbb44444444444444444246442400000000000000000000000000000000
-00000000fd66ffffffff000666660666600fffffcbccccccccccccccccccccccbbbbbbbb444444444424424444666d4400000000000000000000000000000000
-00000000fd666fffffffffd66660e0666fffffffcb3cccbccccbcc3cccccccccbbbbbbbb4444444442442444444d66d400000000000000000000000000000000
-00000000ffdd66666666666d666666666fffffff3b3cccb3cbccbc3bccccccccbbbbbbbb44444444444244444424d64400000000000000000000000000000000
-00000000ffffd66666666666d6666666ffffffffbb3cccb3cbccb33bccccccccbbbbbbbb44444444442444444444444400000000000000000000000000000000
-00000000fffffd66666666666666666fffffffffbbbcc3bbbbb3b33bccccccccbbbbbbbb44444444444444444444442400000000000000000000000000000000
-00000000fffffd66666666666666766fffffffffbbbbbbbbbbbbbbbbccccccccbbbbbbbb44444444444444444444444400000000000000000000000000000000
-00000000fffffd66666666666667776fffffffff0000000000000000000000000000000000000000bb0b00000000000000000000000000000000000000000000
-00000000ffffd666666666666777775fffffffff00000000000000000000000000000000000000000b3b00000000000000000000000000000000000000000000
-00000000ffffd66666666666677775ffffffffff0000000000000000000000000000000000000000003b00000000000000000000000000000000000000000000
-00000000ffffd66dddddddd6655556ffffffffff0000000000000000000000000000000000000000000b0bb00000000000000000000000000000000000000000
-00000000ffffd6f55ffffffd6fffd6ffffffffff0000000000000000000000000000000000000000000b3b000000000000000000000000000000000000000000
-00000000ffffdff5ffffffff6fffdfffffffffff0000000000000000000000000000000000000000000b30000000000000000000000000000000000000000000
-00000000ffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000b00000000000000000000000000000000000000000000
-00000000ffdd6fffffffffffffffffffffffffff0000000000000000000000000000000000000000000b00000000000000000000000000000000000000000000
-00000000fd666ffffffffffffffffffffff000000000000000000000000000000000000044444444444444440000000000000000000000000000000000000000
-00000000fd666ffffffffffffffffffffff00000000000000000000000000000000000004466444444d664440000000000000000000000000000000000000000
-00000000d666fffffffffffffffffffffff000000000000000000000000000000000000042d6744442dd67440000000000000000000000000000000000000000
-00000000d6ffffffffffffffdfffffdffff000000000000000000000000000000000000022dd664422dd66440000000000000000000000000000000000000000
-00000000d6fffffffffffffd5ddffd5dfff000000000000000000000000000000000000022ddd66422dd66440000000000000000000000000000000000000000
-00000000d6fffffffffffffd5666666dfff000000000000000000000000000000000000022dddd6422dddd440000000000000000000000000000000000000000
-00000000d6ffffffffffffd666666666fff000000000000000000000000000000000000022222244422222440000000000000000000000000000000000000000
-00000000d666ffffffff000666066606600000000000000000000000000000000000000044444444444444440000000000000000000000000000000000000000
-00000000fd66ffffffffffd6660666066ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000fd66ffffffff000666660666600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000fd666fffffffffd66660e0666ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffdd66666666666d666666666ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffffd66666666666d6666666fff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000fffffd66666666666666666ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000fffffd66666666666666766ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000fffffd66666666666667776ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffffd666666666666777775ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffffd66666666666677775fffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffffd66dddddddd6655556fffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffffd6f55ffffffd6fffd6fffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000ffffdff5ffffffff6fffdffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000ffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000
-00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff555555555555555555550fffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000
-00000000ffffddddddddddddddddddddd05555555555555550ffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff66666666666666666666660ddddddddddddddd055555555555555550ffffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff6666666666666666666666066666666666666660dddddddddddddddd0fffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff6666666666666666666666066666666666666660666666666666666660ffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff6666666666666666666666066666666666666660666666666666666660ffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff6666666666666666666666066666666666666660dddddddddddddddd0fffffffffffff0000000000000000000000000000000000000000000000
-00000000ffff66666666666666666666660ddddddddddddddd055555555555555550ffffffffffffff0000000000000000000000000000000000000000000000
-00000000ffffddddddddddddddddddddd05555555555555550ffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000
-00000000ffff555555555555555555550fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000
-00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000
+00000000ffdd6fffffffffffffffffffffffffffccccccccccccccccccccccccccccccccbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd666fffffffffffffffffffffffffffcccbcccccccccccccccccccccccccccc33333333cccccccccccccccccccccccccccccccccccccccccccccccc
+00700700fd666fffffffffffffffffffffffffffcccbcccccccccc3bcbcccccccccccccc33333333cccccccccccccccccccccccccccccccccccccccccccccccc
+00077000d666ffffffffffffffffffffffffffffcc3b3cb3ccb3cb3bcb3cccbccccbcc3c33333333cccccccccccccccccccccccccccccccccccccccccccccccc
+00077000d6ffffffffffffffdfffffdfffffffffbc3b3c3bc3b3cbbb3b3cccb3cbccbc3b33323322cccccccccccccccccccccccccccccccccccccccccccccccc
+00700700d6fffffffffffffd5ddffd5dffffffffb33b3b3bbbb3bbbbbb3cccb3cbccb33b33223222cccccccccccccccccccccccccccccccccccccccccccccccc
+00000000d6fffffffffffffd5666666dffffffffb3bb3b3bbbbbbbbbbbbcc3bbbbb3b33b32422442cccccccccccccccccccccccccccccccccccccccccccccccc
+00000000d6ffffffffffffd666666666ffffffffbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb24444442cccccccccccccccccccccccccccccccccccccccccccccccc
+00000000d666ffffffff000666066606600fffffccccccccccccccccccccccccbbbbbbbb444444444444444444444444cccccccccccccccccccccccccccccccc
+00000000fd66ffffffffffd6660666066fffffffccccccccccccccccccccccccbbbbbbbb444444444444444442464424cccccccccccccccccccccccccccccccc
+00000000fd66ffffffff000666660666600fffffcbccccccccccccccccccccccbbbbbbbb444444444424424444666d44cccccccccccccccccccccccccccccccc
+00000000fd666fffffffffd66660e0666fffffffcb3cccbccccbcc3cccccccccbbbbbbbb4444444442442444444d66d4cccccccccccccccccccccccccccccccc
+00000000ffdd66666666666d666666666fffffff3b3cccb3cbccbc3bccccccccbbbbbbbb44444444444244444424d644cccccccccccccccccccccccccccccccc
+00000000ffffd66666666666d6666666ffffffffbb3cccb3cbccb33bccccccccbbbbbbbb444444444424444444444444cccccccccccccccccccccccccccccccc
+00000000fffffd66666666666666666fffffffffbbbcc3bbbbb3b33bccccccccbbbbbbbb444444444444444444444424cccccccccccccccccccccccccccccccc
+00000000fffffd66666666666666766fffffffffbbbbbbbbbbbbbbbbccccccccbbbbbbbb444444444444444444444444cccccccccccccccccccccccccccccccc
+00000000fffffd66666666666667776fffffffffccccccccccccccccccccccccccccccccccccccccbb0bcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd666666666666777775fffffffffcccccccccccccccccccccccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66666666666677775ffffffffffcccccccccccccccccccccccccccccccccccccccccc3bcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66dddddddd6655556ffffffffffcccccccccccccccccccccccccccccccccccccccccccbcbbccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd6f55ffffffd6fffd6ffffffffffcccccccccccccccccccccccccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccc
+00000000ffffdff5ffffffff6fffdfffffffffffcccccccccccccccccccccccccccccccccccccccccccb3ccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffffffffffffffffffffffffffffffcccccccccccccccccccccccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffdd6fffffffffffffffffffffffffffcccccccccccccccccccccccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
+00000000fd666ffffffffffffffffffffffccccccccccccccccccccccccccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
+00000000fd666ffffffffffffffffffffffccccccccccccccccccccccccccccccccccccc4466444444d66444cccccccccccccccccccccccccccccccccccccccc
+00000000d666fffffffffffffffffffffffccccccccccccccccccccccccccccccccccccc42d6744442dd6744cccccccccccccccccccccccccccccccccccccccc
+00000000d6ffffffffffffffdfffffdffffccccccccccccccccccccccccccccccccccccc22dd664422dd6644cccccccccccccccccccccccccccccccccccccccc
+00000000d6fffffffffffffd5ddffd5dfffccccccccccccccccccccccccccccccccccccc22ddd66422dd6644cccccccccccccccccccccccccccccccccccccccc
+00000000d6fffffffffffffd5666666dfffccccccccccccccccccccccccccccccccccccc22dddd6422dddd44cccccccccccccccccccccccccccccccccccccccc
+00000000d6ffffffffffffd666666666fffccccccccccccccccccccccccccccccccccccc2222224442222244cccccccccccccccccccccccccccccccccccccccc
+00000000d666ffffffff0006660666066ccccccccccccccccccccccccccccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
+00000000fd66ffffffffffd6660666066ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd66ffffffff0006666606666ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd666fffffffffd66660e0666ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffdd66666666666d666666666ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66666666666d6666666fffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fffffd66666666666666666ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fffffd66666666666666766ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fffffd66666666666667776ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd666666666666777775ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66666666666677775fffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66dddddddd6655556fffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd6f55ffffffd6fffd6fffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffdff5ffffffff6fffdffffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+0000000ffffffffffffffffffffffffffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+0000000fffffffffffffffffffffcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+555555555555555555550ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ddddddddddddddddddddd05555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+66666666666666666666660ddddddddddddddd055555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+6666666666666666666666066666666666666660dddddddddddddddd0ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+6666666666666666666666066666666666666660666666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+6666666666666666666666066666666666666660666666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+6666666666666666666666066666666666666660dddddddddddddddd0ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+66666666666666666666660ddddddddddddddd055555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ddddddddddddddddddddd05555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+555555555555555555550ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 __gff__
 0000000000000000000200000000000000000000000000000002020200000000000000000000000000020000000000000000000000000000000202000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
