@@ -95,7 +95,7 @@ function make_player()
         dy=-10,
         w=26,
         h=21,
-        bounce=0.8,
+        bounce=0.65,
         on_ground=false,
         update=function(self)
             -- gravity
