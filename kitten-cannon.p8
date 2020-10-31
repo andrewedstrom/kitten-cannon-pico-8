@@ -43,27 +43,22 @@ end
 function make_cannon()
     return {
         x=23,
-        y=80,
+        y=90,
         w=62,
         h=11,
         angle=0,
         draw=function(self)
             palt(0, false)
             palt(15, true)
-            -- sspr(8,48,62,11,self.x,self.y)
-
-            spr_r(0, 6, self.x, self.y, 8, 2, false, false, 0, 0, self.angle, 12)
-
-            -- spr_r(96,self.x,self.y,angle,self.w,self.h)
-            -- spr_r(48,self.x,self.y,angle,4,4)
+            spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
             pal()
         end,
         update=function(self)
             if btn(3) then
-                self.angle = self.angle - 0.01
+                self.angle = self.angle - 0.005
             end
             if btn(2) then
-                self.angle = self.angle + 0.01
+                self.angle = self.angle + 0.005
             end
             self.angle = mid(0,self.angle,0.2)
         end
@@ -144,31 +139,7 @@ function hit_ground(x,y,w,h)
     return false
 end
 
-
--- function spr_r(s,x,y,a,w,h)
---     sw=(w or 1)
---     sh=(h or 1)
---     sx=(s%16)*8
---     sy=flr(s/16)*8
---     x0=flr(0.5*sw)
---     y0=flr(0.5*sh)
---     a=a/360
---     sa=sin(a)
---     ca=cos(a)
---     for ix=0,sw-1 do
---         for iy=0,sh-1 do
---             dx=ix-x0
---             dy=iy-y0
---             xx=flr(dx*ca-dy*sa+x0)
---             yy=flr(dx*sa+dy*ca+y0)
---             if (xx>=0 and xx<sw and yy>=0 and yy<=sh) then
---                 pset(x+ix, y+iy, sget(sx+xx,sy+yy))
---             end
---         end
---     end
--- end
-
-
+-- I did not write this, nor did I write the comments
 -- source: https://github.com/hsandt/pico-boots/blob/master/src/engine/render/sprite.lua
 --
 -- Draw a rotated sprite:
@@ -197,7 +168,6 @@ function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle, transp
     -- to spare tokens, we don't give defaults to all values like angle = 0 or transparent_color = 0
     --  user should call function with all parameters; if not using angle, we recommend spr()
     --  to reduce CPU
-
     local tile_size = 8
 
     -- precompute pixel values from tile indices: sprite source top-left, sprite size
@@ -333,16 +303,16 @@ __gfx__
 0000000ffffffffffffffffffffffffffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 0000000fffffffffffffffffffffcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-555555555555555555550ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-ddddddddddddddddddddd05555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-66666666666666666666660ddddddddddddddd055555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-6666666666666666666666066666666666666660dddddddddddddddd0ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-6666666666666666666666066666666666666660666666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-6666666666666666666666066666666666666660666666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-6666666666666666666666066666666666666660dddddddddddddddd0ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-66666666666666666666660ddddddddddddddd055555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-ddddddddddddddddddddd05555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-555555555555555555550ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+55555555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+dddddddddddddddddddd05555555555555550ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+666666666666666666660dddddddddddddddd0cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+66666666666666666666066666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+66666666666666666666066666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+66666666666666666666066666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+66666666666666666666066666666666666660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+666666666666666666660dddddddddddddddd0cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+dddddddddddddddddddd05555555555555550ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+55555555555555555550cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
