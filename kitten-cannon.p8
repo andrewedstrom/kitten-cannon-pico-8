@@ -67,6 +67,7 @@ function make_cannon()
         length=37,
         angle=0,
         draw=function(self)
+            -- todo don't draw if offscreen
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
         end,
         update=function(self)
