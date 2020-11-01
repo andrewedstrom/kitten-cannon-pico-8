@@ -81,7 +81,7 @@ function make_cannon()
 
             if btn(4) or btn(5) then
                 game_state = "flying"
-                player=make_player(self.angle, self.x, self.y-20, self.length)
+                player=make_player(self.angle, self.x, self.y, self.length)
             end
         end
     }
@@ -89,22 +89,23 @@ end
 
 -- velocity^2= dx^2 + dy^2
 
-function make_player(angle, cannon_x, cannon_adjusted_y, cannon_length) -- todo add velocity
+function make_player(angle, cannon_x, cannon_y, cannon_length) -- todo add velocity
     return {
         feet_traveled=0,
         x=cannon_x+cannon_length*cos(angle),
-        y=cannon_adjusted_y+cannon_length*sin(angle),
+        y=cannon_y+cannon_length*sin(angle)-20,
         dx=5,
         dy=-10,
-        w=26,
-        h=21,
+        w=27,
+        h=22,
         bounce=0.65,
         on_ground=false,
+        angle=angle,
         update=function(self)
             -- gravity
             self.dy = self.dy + gravity
 
-            if hit_ground(self.x+self.dx, self.y+self.dy, self.w, self.h) then
+            if hit_ground(self.x+self.dx, self.y+self.dy, self.w-1, self.h-2) then
                 self.dy = self.dy * -self.bounce
                 if abs(self.dy) < 1.8 then
                     self.on_ground=true
@@ -115,7 +116,7 @@ function make_player(angle, cannon_x, cannon_adjusted_y, cannon_length) -- todo 
             end
 
             if self.on_ground then
-                self.y = 103-self.h
+                self.y = 104-self.h
             else
                 self.y = self.y + self.dy
                 self.feet_traveled += self.dx / 8
@@ -133,6 +134,8 @@ function make_player(angle, cannon_x, cannon_adjusted_y, cannon_length) -- todo 
             palt(0, false)
             palt(15, true)
             sspr(8, 0, self.w+1, self.h+1, self.x, self.y)
+            -- spr_r(1, 0, self.x, self.y, self.w / 8, self.h/8, false, false, 0, self.h/2, self.angle, 15)
+
             pal()
         end
     }
