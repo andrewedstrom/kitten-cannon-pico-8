@@ -79,7 +79,7 @@ function make_cannon()
             -- limit cannon angle
             self.angle = mid(0,self.angle,0.2)
 
-            if btnp(4) or btnp(5) then
+            if btn(4) or btn(5) then
                 game_state = "flying"
                 local shot_power=13
                 player=make_player(self.angle, self.x, self.y, self.length, shot_power)
@@ -109,9 +109,9 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             -- gravity
             self.dy = self.dy + gravity
 
-            if hit_ground(self.x+self.dx, self.y+self.dy, self.w-1, self.h-2) then
+            if hit_ground(self.x, self.y, self.w-1, self.h) then
                 self.dy = self.dy * -self.bounce
-                if abs(self.dy) < 1.8 then
+                if abs(self.dy) < 1.5 then
                     self.on_ground=true
                     game_state = "landed"
                 end
@@ -119,17 +119,19 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                 self.dx = self.dx*0.9
             end
 
-            if self.on_ground then
-                self.y = 104-self.h
-            else
+            if not self.on_ground then
                 self.y = self.y + self.dy
                 self.feet_traveled += self.dx / 8
                 self.x = self.x + self.dx
             end
 
+            -- kitten cannot go below ground
+            self.y = min(104-self.h, self.y)
+
             -- infinite scrolling
             local halfway_through_second_to_last_map_screen = 104
             if self.x >= halfway_through_second_to_last_map_screen*8 then
+                -- teleport to second map screen
                 local how_far_over = self.x-(halfway_through_second_to_last_map_screen*8)
                 self.x = 24 * 8 + how_far_over
             end
