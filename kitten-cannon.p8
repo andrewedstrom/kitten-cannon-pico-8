@@ -64,6 +64,7 @@ function make_cannon()
         y=94,
         w=62,
         h=11,
+        length=37,
         angle=0,
         draw=function(self)
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
@@ -80,17 +81,19 @@ function make_cannon()
 
             if btn(4) or btn(5) then
                 game_state = "flying"
-                player=make_player()
+                player=make_player(self.angle, self.x, self.y-20, self.length)
             end
         end
     }
 end
 
-function make_player()
+-- velocity^2= dx^2 + dy^2
+
+function make_player(angle, cannon_x, cannon_adjusted_y, cannon_length) -- todo add velocity
     return {
         feet_traveled=0,
-        x=13,
-        y=70,
+        x=cannon_x+cannon_length*cos(angle),
+        y=cannon_adjusted_y+cannon_length*sin(angle),
         dx=5,
         dy=-10,
         w=26,
@@ -130,8 +133,6 @@ function make_player()
             palt(0, false)
             palt(15, true)
             sspr(8, 0, self.w+1, self.h+1, self.x, self.y)
-            -- rect(self.x, self.y, self.x+self.w, self.y+self.h, rect_col)
-
             pal()
         end
     }
