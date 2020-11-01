@@ -79,9 +79,10 @@ function make_cannon()
             -- limit cannon angle
             self.angle = mid(0,self.angle,0.2)
 
-            if btn(4) or btn(5) then
+            if btnp(4) or btnp(5) then
                 game_state = "flying"
-                player=make_player(self.angle, self.x, self.y, self.length)
+                local shot_power=13
+                player=make_player(self.angle, self.x, self.y, self.length, shot_power)
             end
         end
     }
@@ -89,13 +90,16 @@ end
 
 -- velocity^2= dx^2 + dy^2
 
-function make_player(angle, cannon_x, cannon_y, cannon_length) -- todo add velocity
+function make_player(angle, cannon_x, cannon_y, cannon_length, power)
+    -- precompute trig
+    local ca=cos(angle)
+    local sa=sin(angle)
     return {
         feet_traveled=0,
-        x=cannon_x+cannon_length*cos(angle),
-        y=cannon_y+cannon_length*sin(angle)-20,
-        dx=5,
-        dy=-10,
+        x=cannon_x+cannon_length*ca,
+        y=cannon_y+cannon_length*sa-20,
+        dx=power*ca,
+        dy=power*sa,
         w=27,
         h=22,
         bounce=0.65,
@@ -135,7 +139,6 @@ function make_player(angle, cannon_x, cannon_y, cannon_length) -- todo add veloc
             palt(15, true)
             sspr(8, 0, self.w+1, self.h+1, self.x, self.y)
             -- spr_r(1, 0, self.x, self.y, self.w / 8, self.h/8, false, false, 0, self.h/2, self.angle, 15)
-
             pal()
         end
     }
