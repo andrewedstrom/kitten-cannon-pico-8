@@ -14,16 +14,33 @@ __lua__
 -- score when you come to a stop
 -- explosion
 
+-- obstacle ideas:
+-- yarn
+-- ball pit
+-- shiny objects?
+-- swimming pool full of milk
+-- just a gap in the map a la mario
+
+
 local player
 local gravity = 0.4
 local camera_pos
 local feet_traveled
 local cannon
 local game_state --  "aiming", "flying", "landed"
+local game_objects
+local ground_y = 104
 
 function _init()
     cannon = make_cannon()
     game_state = "aiming"
+    game_objects = {
+        -- make_trampoline(74),
+        -- make_trampoline(90),
+        -- make_trampoline(110),
+        -- make_trampoline(210),
+        -- make_trampoline(310),
+    }
 end
 
 function _update60()
@@ -31,6 +48,9 @@ function _update60()
         player:update()
     end
     cannon:update()
+    for obj in all(game_objects) do
+        obj:update()
+    end
 end
 
 function _draw()
@@ -46,6 +66,10 @@ function _draw()
         player:draw()
     end
 
+    for obj in all(game_objects) do
+        obj:draw()
+    end
+
     -- hud
     camera(0,0)
     if game_state ~= "aiming" then
@@ -56,6 +80,23 @@ end
 function camera_follow()
     local cam_x=max(0,player.x-60)
     camera(cam_x,0)
+end
+
+function make_trampoline(x)
+    return {
+        x=x,
+        y=ground_y-5,
+        w=22,
+        h=10,
+        draw=function(self)
+            palt(0, false)
+            palt(12, true)
+            sspr(40,17,self.w,self.h,self.x,self.y)
+            pal()
+        end,
+        update=function(self)
+        end
+    }
 end
 
 function make_cannon()
@@ -127,7 +168,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             end
 
             -- kitten cannot go below ground
-            self.y = min(104-self.h, self.y)
+            self.y = min(ground_y-self.h, self.y)
 
             -- infinite scrolling
             local halfway_through_second_to_last_map_screen = 104
@@ -290,24 +331,24 @@ __gfx__
 00000000ffffd66666666666d6666666ffffffffbb3cccb3cbccb33bccccccccbbbbbbbb444444444424444444444444cccccccccccccccccccccccccccccccc
 00000000fffffd66666666666666666fffffffffbbbcc3bbbbb3b33bccccccccbbbbbbbb444444444444444444444424cccccccccccccccccccccccccccccccc
 00000000fffffd66666666666666766fffffffffbbbbbbbbbbbbbbbbccccccccbbbbbbbb444444444444444444444444cccccccccccccccccccccccccccccccc
-00000000fffffd66666666666667776fffffffffccccccccccccccccccccccccccccccccccccccccbb0bcccccccccccccccccccccccccccccccccccccccccccc
-00000000ffffd666666666666777775fffffffffcccccccccccccccccccccccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccccc
-00000000ffffd66666666666677775ffffffffffcccccccccccccccccccccccccccccccccccccccccc3bcccccccccccccccccccccccccccccccccccccccccccc
-00000000ffffd66dddddddd6655556ffffffffffcccccccccccccccccccccccccccccccccccccccccccbcbbccccccccccccccccccccccccccccccccccccccccc
-00000000ffffd6f55ffffffd6fffd6ffffffffffcccccccccccccccccccccccccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccc
-00000000ffffdff5ffffffff6fffdfffffffffffcccccccccccccccccccccccccccccccccccccccccccb3ccccccccccccccccccccccccccccccccccccccccccc
-00000000ffffffffffffffffffffffffffffffffcccccccccccccccccccccccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
-00000000ffdd6fffffffffffffffffffffffffffcccccccccccccccccccccccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
-00000000fd666ffffffffffffffffffffffccccccccccccccccccccccccccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
-00000000fd666ffffffffffffffffffffffccccccccccccccccccccccccccccccccccccc4466444444d66444cccccccccccccccccccccccccccccccccccccccc
-00000000d666fffffffffffffffffffffffccccccccccccccccccccccccccccccccccccc42d6744442dd6744cccccccccccccccccccccccccccccccccccccccc
+00000000fffffd66666666666667776ffffffcccccccccccccccccccccccccccccccccccccccccccbb0bcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd666666666666777775ffffffcccccc66666666666666ccccccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66666666666677775fffffffccc66660000000000006666cccccccccccccccccccccc3bcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66dddddddd6655556fffffffc666000000000000000000666cccccccccccccccccccccbcbbccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd6f55ffffffd6fffd6fffffffc666000000000000000000666cccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccc
+00000000ffffdff5ffffffff6fffdffffffffc666000000000000000000666cccccccccccccccccccccb3ccccccccccccccccccccccccccccccccccccccccccc
+00000000fffffffffffffffffffffffffffffcc5666600000000000066665ccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffdd6ffffffffffffffffffffffffcc5ccd66666666666666dcc5ccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
+00000000fd666ffffffffffffffffffffffcccccccdccccccccccccccdcccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
+00000000fd666ffffffffffffffffffffffcccccccdccccccccccccccdcccccccccccccc4466444444d66444cccccccccccccccccccccccccccccccccccccccc
+00000000d666fffffffffffffffffffffffcccccccdccccccccccccccdcccccccccccccc42d6744442dd6744cccccccccccccccccccccccccccccccccccccccc
 00000000d6ffffffffffffffdfffffdffffccccccccccccccccccccccccccccccccccccc22dd664422dd6644cccccccccccccccccccccccccccccccccccccccc
 00000000d6fffffffffffffd5ddffd5dfffccccccccccccccccccccccccccccccccccccc22ddd66422dd6644cccccccccccccccccccccccccccccccccccccccc
 00000000d6fffffffffffffd5666666dfffccccccccccccccccccccccccccccccccccccc22dddd6422dddd44cccccccccccccccccccccccccccccccccccccccc
 00000000d6ffffffffffffd666666666fffccccccccccccccccccccccccccccccccccccc2222224442222244cccccccccccccccccccccccccccccccccccccccc
-00000000d666ffffffff0006660666066ccccccccccccccccccccccccccccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
+00000000d666ffffffff000666066606600ccccccccccccccccccccccccccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
 00000000fd66ffffffffffd6660666066ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000fd66ffffffff0006666606666ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd66ffffffff000666660666600ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00000000fd666fffffffffd66660e0666ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00000000ffdd66666666666d666666666ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00000000ffffd66666666666d6666666fffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
