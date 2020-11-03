@@ -21,25 +21,26 @@ __lua__
 -- swimming pool full of milk
 -- just a gap in the map a la mario
 
-
 local player
 local gravity = 0.4
 local camera_pos
 local feet_traveled
 local cannon
 local game_state --  "aiming", "flying", "landed"
-local game_objects
+local obstacles
 local ground_y = 104
 
 function _init()
     cannon = make_cannon()
     game_state = "aiming"
-    game_objects = {
-        -- make_trampoline(74),
-        -- make_trampoline(90),
-        -- make_trampoline(110),
-        -- make_trampoline(210),
-        -- make_trampoline(310),
+    obstacles = {
+        make_trampoline(74),
+        make_trampoline(110),
+        make_trampoline(210),
+        make_trampoline(310),
+        make_trampoline(410),
+        make_trampoline(510),
+        make_trampoline(610),
     }
 end
 
@@ -48,7 +49,7 @@ function _update60()
         player:update()
     end
     cannon:update()
-    for obj in all(game_objects) do
+    for obj in all(obstacles) do
         obj:update()
     end
 end
@@ -66,7 +67,7 @@ function _draw()
         player:draw()
     end
 
-    for obj in all(game_objects) do
+    for obj in all(obstacles) do
         obj:draw()
     end
 
@@ -85,13 +86,17 @@ end
 function make_trampoline(x)
     return {
         x=x,
-        y=ground_y-5,
+        y=ground_y-7,
         w=22,
-        h=10,
+        h=6,
+        sh=10,
+        bounce_multiplier=1.25,
+        boost_multiplier=1.05,
         draw=function(self)
             palt(0, false)
             palt(12, true)
-            sspr(40,17,self.w,self.h,self.x,self.y)
+            sspr(40,17,self.w,self.sh,self.x,self.y)
+            -- rect(self.x,self.y,self.x+self.w,self.y+self.h,7)
             pal()
         end,
         update=function(self)
@@ -134,6 +139,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
     -- precompute trig
     local ca=cos(angle)
     local sa=sin(angle)
+
     return {
         feet_traveled=0,
         x=cannon_x+cannon_length*ca,
@@ -159,10 +165,29 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                 self.dx = self.dx*0.7
             end
 
+
+            -- check for collisions
+            local hitbox = self:hitbox()
+            for obstacle in all(obstacles) do
+                local obstacle_top = obstacle.y
+                local obstacle_bottom = obstacle.y+obstacle.h
+                local obstacle_left = obstacle.x
+                local obstacle_right = obstacle.x+obstacle.w
+                local hitbox_top = hitbox.y
+                local hitbox_bottom = hitbox.y+hitbox.h
+                local hitbox_left = hitbox.x
+                local hitbox_right = hitbox.x+hitbox.w
+                if rects_overlapping(obstacle_left, obstacle_top, obstacle_right, obstacle_bottom, hitbox_left, hitbox_top, hitbox_right, hitbox_bottom) then
+                    self.dy = -abs(self.dy*obstacle.bounce_multiplier)
+                    self.dx = self.dx*obstacle.boost_multiplier
+                end
+            end
+
+            -- update x and y
             if not self.on_ground then
                 self.y = self.y + self.dy
-                self.feet_traveled += self.dx / 8
                 self.x = self.x + self.dx
+                self.feet_traveled += self.dx / 8
             end
 
             -- kitten cannot go below ground
@@ -180,8 +205,18 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             palt(0, false)
             palt(15, true)
             sspr(8, 0, self.w+1, self.h+1, self.x, self.y)
+            local hitbox = self:hitbox()
+            -- rect(hitbox.x,hitbox.y,hitbox.x+hitbox.w,hitbox.y+hitbox.h,9)
             -- spr_r(1, 0, self.x, self.y, self.w / 8, self.h/8, false, false, 0, self.h/2, self.angle, 15)
             pal()
+        end,
+        hitbox=function(self)
+            return {
+                x=self.x+4,
+                y=self.y+3,
+                w=self.w-7,
+                h=self.h-3
+            }
         end
     }
 end
@@ -207,6 +242,14 @@ function hit_ground(x,y,w,h)
     end
 
     return false
+end
+
+function lines_overlapping(min1,max1,min2,max2)
+	return max1>min2 and max2>min1
+end
+
+function rects_overlapping(left1,top1,right1,bottom1,left2,top2,right2,bottom2)
+	return lines_overlapping(left1,right1,left2,right2) and lines_overlapping(top1,bottom1,top2,bottom2)
 end
 
 -- I did not write this, nor did I write the comments
