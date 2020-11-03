@@ -130,8 +130,6 @@ function make_cannon()
     }
 end
 
--- velocity^2= dx^2 + dy^2
-
 function make_player(angle, cannon_x, cannon_y, cannon_length, power)
     -- precompute trig
     local ca=cos(angle)
@@ -158,7 +156,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                     game_state = "landed"
                 end
 
-                self.dx = self.dx*0.9
+                self.dx = self.dx*0.7
             end
 
             if not self.on_ground then
