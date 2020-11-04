@@ -72,51 +72,51 @@ function _draw()
     end
 
     -- hud
-    camera(0,0)
+    camera(0, 0)
     if game_state ~= "aiming" then
         print(flr(player.feet_traveled) .. "ft", 8, 8, 7)
     end
 end
 
 function camera_follow()
-    local cam_x=max(0,player.x-60)
-    camera(cam_x,0)
+    local cam_x = max(0, player.x - 60)
+    camera(cam_x, 0)
 end
 
 function make_trampoline(x)
     return {
-        x=x,
-        y=ground_y-7,
-        w=22,
-        h=6,
-        sh=10,
-        bounce_multiplier=1.25,
-        boost_multiplier=1.05,
-        draw=function(self)
+        x = x,
+        y = ground_y - 7,
+        w = 22,
+        h = 6,
+        sh = 10,
+        bounce_multiplier = 1.25,
+        boost_multiplier = 1.05,
+        draw = function(self)
             palt(0, false)
             palt(12, true)
-            sspr(40,17,self.w,self.sh,self.x,self.y)
+            sspr(40, 17, self.w, self.sh, self.x, self.y)
             -- rect(self.x,self.y,self.x+self.w,self.y+self.h,7)
             pal()
         end,
-        update=function(self)
+        update = function(self)
         end
     }
 end
 
 function make_cannon()
     return {
-        x=13,
-        y=94,
-        w=62,
-        h=11,
-        length=37,
-        angle=0,
-        draw=function(self)
+        x = 13,
+        y = 94,
+        w = 62,
+        h = 11,
+        length = 37,
+        angle = 0,
+        draw = function(self)
             -- todo don't draw if offscreen
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
         end,
-        update=function(self)
+        update = function(self)
             if btn(3) then
                 self.angle = self.angle - 0.005
             end
@@ -128,8 +128,8 @@ function make_cannon()
 
             if btn(4) or btn(5) then
                 game_state = "flying"
-                local shot_power=13
-                player=make_player(self.angle, self.x, self.y, self.length, shot_power)
+                local shot_power = 13
+                player = make_player(self.angle, self.x, self.y, self.length, shot_power)
             end
         end
     }
@@ -137,21 +137,21 @@ end
 
 function make_player(angle, cannon_x, cannon_y, cannon_length, power)
     -- precompute trig
-    local ca=cos(angle)
-    local sa=sin(angle)
+    local ca = cos(angle)
+    local sa = sin(angle)
 
     return {
-        feet_traveled=0,
-        x=cannon_x+cannon_length*ca,
-        y=cannon_y+cannon_length*sa-20,
-        dx=power*ca,
-        dy=power*sa,
-        w=27,
-        h=22,
-        bounce=0.65,
-        on_ground=false,
-        angle=angle,
-        update=function(self)
+        feet_traveled = 0,
+        x = cannon_x + cannon_length * ca,
+        y = cannon_y + cannon_length * sa - 20,
+        dx = power * ca,
+        dy = power * sa,
+        w = 27,
+        h = 22,
+        bounce = 0.65,
+        on_ground = false,
+        angle = angle,
+        update = function(self)
             -- gravity
             self.dy = self.dy + gravity
 
@@ -162,15 +162,15 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                     game_state = "landed"
                 end
 
-                self.dx = self.dx*0.7
+                self.dx = self.dx * 0.7
             end
 
             -- check for collisions
             local hitbox = self:hitbox()
             for obstacle in all(obstacles) do
                 if rects_overlapping(obstacle.x, obstacle.y, obstacle.x + obstacle.w, obstacle.y + obstacle.h, hitbox.x, hitbox.y, hitbox.x + hitbox.w, hitbox.y + hitbox.h) then
-                    self.dy = -abs(self.dy*obstacle.bounce_multiplier)
-                    self.dx = self.dx*obstacle.boost_multiplier
+                    self.dy = -abs(self.dy * obstacle.bounce_multiplier)
+                    self.dx = self.dx * obstacle.boost_multiplier
                 end
             end
 
@@ -182,51 +182,47 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             end
 
             -- kitten cannot go below ground
-            self.y = min(ground_y-self.h, self.y)
+            self.y = min(ground_y - self.h, self.y)
 
             -- infinite scrolling
             local halfway_through_second_to_last_map_screen = 104
             if self.x >= halfway_through_second_to_last_map_screen*8 then
                 -- teleport to second map screen
-                local how_far_over = self.x-(halfway_through_second_to_last_map_screen*8)
+                local how_far_over = self.x -(halfway_through_second_to_last_map_screen * 8)
                 self.x = 24 * 8 + how_far_over
             end
         end,
-        draw=function(self)
+        draw = function(self)
             palt(0, false)
             palt(15, true)
-            sspr(8, 0, self.w+1, self.h+1, self.x, self.y)
-            local hitbox = self:hitbox()
-            -- rect(hitbox.x,hitbox.y,hitbox.x+hitbox.w,hitbox.y+hitbox.h,9)
-            -- spr_r(1, 0, self.x, self.y, self.w / 8, self.h/8, false, false, 0, self.h/2, self.angle, 15)
+            sspr(8, 0, self.w + 1, self.h + 1, self.x, self.y)
             pal()
         end,
-        hitbox=function(self)
+        hitbox = function(self)
             return {
-                x=self.x+4,
-                y=self.y+3,
-                w=self.w-7,
-                h=self.h-3
+                x = self.x + 4,
+                y = self.y + 3,
+                w = self.w - 7,
+                h = self.h - 3
             }
         end
     }
 end
 
 --todo just move to player
-function hit_ground(x,y,w,h)
+function hit_ground(x, y, w, h)
     local i
-
-    for i=x, x+w do
-        local top_edge_cell = mget(i/8, y/8)
-        local bottom_edge_cell = mget(i/8, (y+h)/8)
+    for i = x, x + w do
+        local top_edge_cell = mget(i / 8, y / 8)
+        local bottom_edge_cell = mget(i / 8, (y + h) / 8)
         if fget(top_edge_cell, 1) or fget(bottom_edge_cell, 1) then
             return true
         end
     end
 
-    for i=y, y+h do
-        local left_edge_cell = mget(x/8, i/8)
-        local right_edge_cell = mget((x+w)/8, i/8)
+    for i = y, y + h do
+        local left_edge_cell = mget(x / 8, i / 8)
+        local right_edge_cell = mget((x + w) / 8, i / 8)
         if fget(left_edge_cell, 1) or fget(right_edge_cell, 1) then
             return true
         end
@@ -235,12 +231,12 @@ function hit_ground(x,y,w,h)
     return false
 end
 
-function lines_overlapping(min1,max1,min2,max2)
-	return max1>min2 and max2>min1
+function lines_overlapping(min1, max1, min2, max2)
+	return max1 > min2 and max2 > min1
 end
 
-function rects_overlapping(left1,top1,right1,bottom1,left2,top2,right2,bottom2)
-	return lines_overlapping(left1,right1,left2,right2) and lines_overlapping(top1,bottom1,top2,bottom2)
+function rects_overlapping(left1, top1, right1, bottom1, left2, top2, right2, bottom2)
+	return lines_overlapping(left1, right1, left2, right2) and lines_overlapping(top1, bottom1, top2, bottom2)
 end
 
 #include sprite-rotate.lua
