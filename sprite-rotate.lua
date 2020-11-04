@@ -11,16 +11,14 @@
 --  optionally flipped on X and Y with flags flip_x and flip_y,
 --  offset by -(pivot_x, pivot_y) and rotated by angle around this pivot,
 --  ignoring transparent_color.
--- It mimics native spr() and therefore doesn't use pico-boots math vectors.
 -- Unlike spr() though, it takes sprite location coords i, j as first arguments
 --  instead of sprite ID n, but conversion is trivial.
-function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle, transparent_color)
-    -- to spare tokens, we don't give defaults to all values like angle = 0 or transparent_color = 0
-    --  user should call function with all parameters; if not using angle, we recommend spr()
-    --  to reduce CPU
+-- must be called with all arguments
+function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle,
+               transparent_color)
+    -- precompute pixel values from tile indices: sprite source top-left, sprite size
     local tile_size = 8
 
-    -- precompute pixel values from tile indices: sprite source top-left, sprite size
     local sx = tile_size * i
     local sy = tile_size * j
     local sw = tile_size * w
@@ -49,8 +47,8 @@ function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle, transp
     -- we need to compute this disc radius so we can properly draw the rotated sprite wherever it will "land" on the screen
     -- (if we just draw on the rectangle area where the sprite originally is, we observe rectangle clipping)
     -- actually measure distance between pivot and edge pixel center, so pivot vs 0.5 (start) or sw - 0.5 (end)
-    local max_dx = max(pivot_x, sw - pivot_x) - 0.5  -- actually (pivot_x - 0.5, sw - 0.5 - pivot_x) i.e. max horizontal distance from pivot to corner
-    local max_dy = max(pivot_y, sh - pivot_y) - 0.5  -- actually (pivot_y - 0.5, sh - 0.5 - pivot_y) i.e. max vertical distance from pivot to corner
+    local max_dx = max(pivot_x, sw - pivot_x) - 0.5 -- actually (pivot_x - 0.5, sw - 0.5 - pivot_x) i.e. max horizontal distance from pivot to corner
+    local max_dy = max(pivot_y, sh - pivot_y) - 0.5 -- actually (pivot_y - 0.5, sh - 0.5 - pivot_y) i.e. max vertical distance from pivot to corner
     local max_sqr_dist = max_dx * max_dx + max_dy * max_dy
     -- ceil to be sure we reach enough pixels while avoiding fractions
     -- subtract half for symmetrical operations, it's very important as it will affect
@@ -62,44 +60,40 @@ function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle, transp
     -- it's not trivial to iterate over a disc (you'd need trigonometry)
     --  so instead, iterate over the target disc's bounding box
     -- we work with relative offsets
-    for dx = - max_dist_minus_half, max_dist_minus_half do
-      for dy = - max_dist_minus_half, max_dist_minus_half do
-        -- optimization: we know that nothing should be drawn outside the target disc contained in the bounding box
-        --  so only consider pixels inside the target disc
-        -- the final source range check more below is the most important
-        if dx * dx + dy * dy <= max_sqr_dist then
-          -- prepare flip factors
-          local sign_x = flip_x and -1 or 1
-          local sign_y = flip_y and -1 or 1
-          -- compute pixel location on source sprite in spritesheet
-          -- this basically a reverse rotation matrix to find which pixel
-          --  on the original sprite should be represented
+    for dx = -max_dist_minus_half, max_dist_minus_half do
+        for dy = -max_dist_minus_half, max_dist_minus_half do
+            -- optimization: we know that nothing should be drawn outside the target disc contained in the bounding box
+            --  so only consider pixels inside the target disc
+            -- the final source range check more below is the most important
+            if dx * dx + dy * dy <= max_sqr_dist then
+                -- prepare flip factors
+                local sign_x = flip_x and -1 or 1
+                local sign_y = flip_y and -1 or 1
+                -- compute pixel location on source sprite in spritesheet
+                -- this basically a reverse rotation matrix to find which pixel
+                --  on the original sprite should be represented
+                local rotated_dx = sign_x * (ca * dx + sa * dy)
+                local rotated_dy = sign_y * (-sa * dx + ca * dy)
 
-          -- Known issue: luamin will remove brackets from expression a + b * (c + d)
-          -- so make sure to store b * (c + d) in an intermediate variable
-          -- https://github.com/mathiasbynens/luamin/issues/50
-          local rotated_dx = sign_x * ( ca * dx + sa * dy)
-          local rotated_dy = sign_y * (-sa * dx + ca * dy)
+                -- spare a few tokens by not flooring xx and yy
+                --  we should semantically, but fortunately sget does auto-floor arguments
+                local xx = pivot_x + rotated_dx
+                local yy = pivot_y + rotated_dy
 
-          -- spare a few tokens by not flooring xx and yy
-          --  we should semantically, but fortunately sget does auto-floor arguments
-          local xx = pivot_x + rotated_dx
-          local yy = pivot_y + rotated_dy
-
-          -- make sure to never draw pixels from the spritesheet
-          --  that are outside the source sprite
-          -- simply check if the source pixel is located in the source sprite rectangle
-          if xx >= 0 and xx < sw and yy >= 0 and yy < sh then
-            -- get source pixel
-            local c = sget(sx + xx, sy + yy)
-            -- ignore if transparent color
-            if c ~= transparent_color then
-              -- set target pixel color to source pixel color
-              -- spare a few tokens by not flooring dx and dy, as pset also auto-floors arguments
-              pset(x + dx, y + dy, c)
+                -- make sure to never draw pixels from the spritesheet
+                --  that are outside the source sprite
+                -- simply check if the source pixel is located in the source sprite rectangle
+                if xx >= 0 and xx < sw and yy >= 0 and yy < sh then
+                    -- get source pixel
+                    local c = sget(sx + xx, sy + yy)
+                    -- ignore if transparent color
+                    if c ~= transparent_color then
+                        -- set target pixel color to source pixel color
+                        -- spare a few tokens by not flooring dx and dy, as pset also auto-floors arguments
+                        pset(x + dx, y + dy, c)
+                    end
+                end
             end
-          end
         end
-      end
     end
-  end
+end

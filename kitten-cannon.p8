@@ -124,7 +124,7 @@ function make_cannon()
                 self.angle = self.angle + 0.005
             end
             -- limit cannon angle
-            self.angle = mid(0,self.angle,0.2)
+            self.angle = mid(0, self.angle, 0.2)
 
             if btn(4) or btn(5) then
                 game_state = "flying"
@@ -165,19 +165,10 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                 self.dx = self.dx*0.7
             end
 
-
             -- check for collisions
             local hitbox = self:hitbox()
             for obstacle in all(obstacles) do
-                local obstacle_top = obstacle.y
-                local obstacle_bottom = obstacle.y+obstacle.h
-                local obstacle_left = obstacle.x
-                local obstacle_right = obstacle.x+obstacle.w
-                local hitbox_top = hitbox.y
-                local hitbox_bottom = hitbox.y+hitbox.h
-                local hitbox_left = hitbox.x
-                local hitbox_right = hitbox.x+hitbox.w
-                if rects_overlapping(obstacle_left, obstacle_top, obstacle_right, obstacle_bottom, hitbox_left, hitbox_top, hitbox_right, hitbox_bottom) then
+                if rects_overlapping(obstacle.x, obstacle.y, obstacle.x + obstacle.w, obstacle.y + obstacle.h, hitbox.x, hitbox.y, hitbox.x + hitbox.w, hitbox.y + hitbox.h) then
                     self.dy = -abs(self.dy*obstacle.bounce_multiplier)
                     self.dx = self.dx*obstacle.boost_multiplier
                 end
