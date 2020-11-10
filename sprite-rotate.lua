@@ -14,8 +14,7 @@
 -- Unlike spr() though, it takes sprite location coords i, j as first arguments
 --  instead of sprite ID n, but conversion is trivial.
 -- must be called with all arguments
-function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle,
-               transparent_color)
+function spr_r(i, j, x, y, w, h, pivot_x, pivot_y, angle, transparent_color)
     -- precompute pixel values from tile indices: sprite source top-left, sprite size
     local tile_size = 8
 
@@ -66,14 +65,11 @@ function spr_r(i, j, x, y, w, h, flip_x, flip_y, pivot_x, pivot_y, angle,
             --  so only consider pixels inside the target disc
             -- the final source range check more below is the most important
             if dx * dx + dy * dy <= max_sqr_dist then
-                -- prepare flip factors
-                local sign_x = flip_x and -1 or 1
-                local sign_y = flip_y and -1 or 1
                 -- compute pixel location on source sprite in spritesheet
                 -- this basically a reverse rotation matrix to find which pixel
                 --  on the original sprite should be represented
-                local rotated_dx = sign_x * (ca * dx + sa * dy)
-                local rotated_dy = sign_y * (-sa * dx + ca * dy)
+                local rotated_dx = ca * dx + sa * dy
+                local rotated_dy = -sa * dx + ca * dy
 
                 -- spare a few tokens by not flooring xx and yy
                 --  we should semantically, but fortunately sget does auto-floor arguments

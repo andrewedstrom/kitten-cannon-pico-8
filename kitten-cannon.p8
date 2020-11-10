@@ -125,12 +125,12 @@ function make_cannon()
             if player and player.x > 188 then
                 return
             end
-            spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
+            spr_r(0, 6, self.x, self.y, 4.75, 1.25, 0, 6, self.angle, 12)
         end,
         draw_power_bar = function(self)
             local max_bar_w = self.shot_timer_cycle_time / 2
             local label_x = 8
-            local bar_x = label_x + 6 * 5
+            local bar_x = label_x + 6 * 4+1
             local bar_w = self.power
             local bar_h = 4
             local  y = 8
