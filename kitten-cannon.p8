@@ -76,9 +76,11 @@ function _draw()
     -- hud
     camera(0, 0)
     if game_state ~= "aiming" then
-        print("distance: " .. flr(player.feet_traveled) .. "ft", 8, 16, 7)
+        print(flr(player.feet_traveled) .. "ft", 8, 16, 7)
     end
     cannon:draw_power_bar()
+    -- print("fps:" .. stat(7), 8, 24, 7)
+    -- print("cpu:" .. stat(1), 8, 32, 7)
 end
 
 function camera_follow()
@@ -114,20 +116,26 @@ function make_cannon()
         w = 62,
         h = 11,
         power = 0,
-        max_power = 30,
+        timer = 0,
+        shot_timer_cycle_time = 40,
         length = 37,
         angle = 0,
         draw = function(self)
+            -- don't bother drawing if offscreen
+            if player and player.x > 188 then
+                return
+            end
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
         end,
         draw_power_bar = function(self)
-            label_x = 8
-            bar_x = label_x + 6 * 5
-            bar_w = min(self.power, self.max_power)
-            bar_h = 4
-            y = 8
+            local max_bar_w = self.shot_timer_cycle_time / 2
+            local label_x = 8
+            local bar_x = label_x + 6 * 5
+            local bar_w = self.power
+            local bar_h = 4
+            local  y = 8
             print("power:", label_x, y, 7)
-            rect(bar_x-1, y-1, bar_x + self.max_power + 1, y + bar_h + 1, 0)
+            rect(bar_x-1, y-1, bar_x + max_bar_w + 1, y + bar_h + 1, 0)
 
             rectfill(bar_x, y, bar_x + bar_w, y + bar_h, 8)
         end,
@@ -143,11 +151,21 @@ function make_cannon()
 
             if btn(4) or btn(5) then
                 game_state = "flying"
-                local shot_power = self.power / 2
+                local shot_power = self.power
                 player = make_player(self.angle, self.x, self.y, self.length, shot_power)
             else
-                self.power = (self.power + 1) % (self.max_power+1)
+                self.timer = (self.timer + 1) % self.shot_timer_cycle_time
+                self.power = self:calculate_current_power()
             end
+        end,
+        calculate_current_power = function(self)
+            local max_power = self.shot_timer_cycle_time / 2
+            local power_bar_rising = self.timer <= self.shot_timer_cycle_time / 2
+            local power = self.timer % (self.shot_timer_cycle_time/2 + 1)
+            if power_bar_rising then
+                return power
+            end
+            return max_power - power
         end
     }
 end
