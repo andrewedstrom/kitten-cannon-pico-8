@@ -5,14 +5,14 @@ __lua__
 -- by andrew edstrom
 
 -- todo
--- kitten comes out of barrel
--- barrel angle determines initial kitten angle
 -- hit x at right time to determine initial velocity
--- trampolines
+-- print angle
 -- tnt
 -- fly traps
 -- score when you come to a stop
 -- explosion
+-- loop obstacles
+-- randomly generate obstacles
 
 -- obstacle ideas:
 -- yarn
@@ -45,10 +45,12 @@ function _init()
 end
 
 function _update60()
-    if game_state ~= "aiming" then
+    if player then
         player:update()
     end
-    cannon:update()
+    if game_state == "aiming" then
+        cannon:update()
+    end
     for obj in all(obstacles) do
         obj:update()
     end
@@ -74,8 +76,9 @@ function _draw()
     -- hud
     camera(0, 0)
     if game_state ~= "aiming" then
-        print(flr(player.feet_traveled) .. "ft", 8, 8, 7)
+        print("distance: " .. flr(player.feet_traveled) .. "ft", 8, 16, 7)
     end
+    cannon:draw_power_bar()
 end
 
 function camera_follow()
@@ -110,11 +113,23 @@ function make_cannon()
         y = 94,
         w = 62,
         h = 11,
+        power = 0,
+        max_power = 30,
         length = 37,
         angle = 0,
         draw = function(self)
-            -- todo don't draw if offscreen
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, false, false, 0, 6, self.angle, 12)
+        end,
+        draw_power_bar = function(self)
+            label_x = 8
+            bar_x = label_x + 6 * 5
+            bar_w = min(self.power, self.max_power)
+            bar_h = 4
+            y = 8
+            print("power:", label_x, y, 7)
+            rect(bar_x-1, y-1, bar_x + self.max_power + 1, y + bar_h + 1, 0)
+
+            rectfill(bar_x, y, bar_x + bar_w, y + bar_h, 8)
         end,
         update = function(self)
             if btn(3) then
@@ -128,8 +143,10 @@ function make_cannon()
 
             if btn(4) or btn(5) then
                 game_state = "flying"
-                local shot_power = 13
+                local shot_power = self.power / 2
                 player = make_player(self.angle, self.x, self.y, self.length, shot_power)
+            else
+                self.power = (self.power + 1) % (self.max_power+1)
             end
         end
     }
