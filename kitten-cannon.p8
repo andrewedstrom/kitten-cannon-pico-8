@@ -91,8 +91,8 @@ end
 function make_trampoline(x)
     return {
         x = x,
-        y = ground_y - 7,
-        w = 22,
+        y = ground_y - 8,
+        w = 18,
         h = 6,
         sh = 10,
         bounce_multiplier = 1.25,
@@ -100,7 +100,7 @@ function make_trampoline(x)
         draw = function(self)
             palt(0, false)
             palt(12, true)
-            sspr(40, 17, self.w, self.sh, self.x, self.y)
+            sspr(38, 17, self.w+6, self.sh, self.x-3, self.y)
             -- rect(self.x,self.y,self.x+self.w,self.y+self.h,7)
             pal()
         end,
@@ -299,11 +299,11 @@ __gfx__
 00000000ffffd66dddddddd6655556fffffffc666000000000000000000666cccccccccccccccccccccbcbbccccccccccccccccccccccccccccccccccccccccc
 00000000ffffd6f55ffffffd6fffd6fffffffc666000000000000000000666cccccccccccccccccccccb3bcccccccccccccccccccccccccccccccccccccccccc
 00000000ffffdff5ffffffff6fffdffffffffc666000000000000000000666cccccccccccccccccccccb3ccccccccccccccccccccccccccccccccccccccccccc
-00000000fffffffffffffffffffffffffffffcc5666600000000000066665ccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
-00000000ffdd6ffffffffffffffffffffffffcc5ccd66666666666666dcc5ccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
-00000000fd666ffffffffffffffffffffffcccccccdccccccccccccccdcccccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
-00000000fd666ffffffffffffffffffffffcccccccdccccccccccccccdcccccccccccccc4466444444d66444cccccccccccccccccccccccccccccccccccccccc
-00000000d666fffffffffffffffffffffffcccccccdccccccccccccccdcccccccccccccc42d6744442dd6744cccccccccccccccccccccccccccccccccccccccc
+00000000fffffffffffffffffffffffffffffccc66660000000000006666cccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
+00000000ffdd6ffffffffffffffffffffffffcccd5c66666666666666c5dcccccccccccccccccccccccbcccccccccccccccccccccccccccccccccccccccccccc
+00000000fd666ffffffffffffffffffffffcccccd5cccccccccccccccc5dcccccccccccc4444444444444444cccccccccccccccccccccccccccccccccccccccc
+00000000fd666ffffffffffffffffffffffcccccdccccccccccccccccccdcccccccccccc4466444444d66444cccccccccccccccccccccccccccccccccccccccc
+00000000d666fffffffffffffffffffffffcccccdccccccccccccccccccdcccccccccccc42d6744442dd6744cccccccccccccccccccccccccccccccccccccccc
 00000000d6ffffffffffffffdfffffdffffccccccccccccccccccccccccccccccccccccc22dd664422dd6644cccccccccccccccccccccccccccccccccccccccc
 00000000d6fffffffffffffd5ddffd5dfffccccccccccccccccccccccccccccccccccccc22ddd66422dd6644cccccccccccccccccccccccccccccccccccccccc
 00000000d6fffffffffffffd5666666dfffccccccccccccccccccccccccccccccccccccc22dddd6422dddd44cccccccccccccccccccccccccccccccccccccccc

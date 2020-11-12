@@ -24,8 +24,8 @@ function spr_r(i, j, x, y, w, h, pivot_x, pivot_y, angle, transparent_color)
     local sh = tile_size * h
 
     -- precompute angle trigonometry
-    local sa = sin(angle)
-    local ca = cos(angle)
+    local sinOfAngle = sin(angle)
+    local cosOfAngle = cos(angle)
 
     -- in the operations below, we work "inside" pixels as much as possible (offset 0.5 from top-left corner)
     --  then floor coordinates (or let PICO-8 functions auto-floor) at the last moment for more symmetrical results
@@ -68,8 +68,8 @@ function spr_r(i, j, x, y, w, h, pivot_x, pivot_y, angle, transparent_color)
                 -- compute pixel location on source sprite in spritesheet
                 -- this basically a reverse rotation matrix to find which pixel
                 --  on the original sprite should be represented
-                local rotated_dx = ca * dx + sa * dy
-                local rotated_dy = -sa * dx + ca * dy
+                local rotated_dx = cosOfAngle * dx + sinOfAngle * dy
+                local rotated_dy = -sinOfAngle * dx + cosOfAngle * dy
 
                 -- spare a few tokens by not flooring xx and yy
                 --  we should semantically, but fortunately sget does auto-floor arguments
@@ -80,7 +80,6 @@ function spr_r(i, j, x, y, w, h, pivot_x, pivot_y, angle, transparent_color)
                 --  that are outside the source sprite
                 -- simply check if the source pixel is located in the source sprite rectangle
                 if xx >= 0 and xx < sw and yy >= 0 and yy < sh then
-                    -- get source pixel
                     local c = sget(sx + xx, sy + yy)
                     -- ignore if transparent color
                     if c ~= transparent_color then
