@@ -33,13 +33,11 @@ function _init()
     cannon = make_cannon()
     game_state = "aiming"
     obstacles = {
-        make_trampoline(74),
-        make_trampoline(110),
-        make_trampoline(210),
-        make_trampoline(310),
-        make_trampoline(410),
-        make_trampoline(510),
-        make_trampoline(610),
+        make_trampoline(384),
+        make_trampoline(480),
+        make_trampoline(550),
+        make_trampoline(650),
+        make_trampoline(704),
     }
 end
 
@@ -61,24 +59,21 @@ end
 
 function _draw()
     cls()
-
-    if game_state ~= "aiming" then
+    if game_state == "aiming" then
+        map(0, 0, 0, 0, 128, 16)
+        cannon:draw()
+        for obj in all(obstacles) do
+            obj:draw()
+        end
+    else
         camera_follow()
-    end
-
-    map(0, 0, 0, 0, 128, 16)
-    cannon:draw()
-    if game_state ~= "aiming" then
+        map(0, 0, 0, 0, 128, 16)
+        cannon:draw()
         player:draw()
-    end
-
-    for obj in all(obstacles) do
-        obj:draw()
-    end
-
-    -- hud
-    camera(0, 0)
-    if game_state ~= "aiming" then
+        for obj in all(obstacles) do
+            obj:draw()
+        end
+        camera(0, 0)
         print(flr(player.feet_traveled) .. "ft", 8, 16, 7)
     end
     cannon:draw_power_bar()
@@ -93,7 +88,7 @@ end
 
 function infinitely_scroll()
     local halfway_through_second_to_last_map_screen = 104
-    if player.x >= halfway_through_second_to_last_map_screen*8 then
+    if player.x >= halfway_through_second_to_last_map_screen * 8 then
         -- teleport to second map screen
         local how_far_over = player.x -(halfway_through_second_to_last_map_screen * 8)
         player.x = 24 * 8 + how_far_over
@@ -112,7 +107,7 @@ function make_trampoline(x)
         draw = function(self)
             palt(0, false)
             palt(12, true)
-            sspr(38, 17, self.w+6, self.sh, self.x-3, self.y)
+            sspr(38, 17, self.w + 6, self.sh, self.x - 3, self.y)
             -- rect(self.x,self.y,self.x+self.w,self.y+self.h,7)
             pal()
         end,
