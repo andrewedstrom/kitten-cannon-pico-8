@@ -30,6 +30,15 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                 self.dx = self.dx * 0.7
             end
 
+            if not self.on_ground then
+                self.y = self.y + self.dy
+                self.x = self.x + self.dx
+                self.feet_traveled = self.feet_traveled + self.dx / one_foot_in_pixels
+            end
+
+            -- kitten cannot go below ground
+            self.y = min(ground_y - self.h, self.y)
+
             -- check for collisions
             local hitbox = self:hitbox()
             for obstacle in all(obstacles) do
@@ -42,23 +51,14 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                     self.dx = self.dx * obstacle.boost_multiplier
                 end
             end
-
-            -- update x and y
-            if not self.on_ground then
-                self.y = self.y + self.dy
-                self.x = self.x + self.dx
-                self.feet_traveled = self.feet_traveled + self.dx / one_foot_in_pixels
-            end
-
-            -- kitten cannot go below ground
-            self.y = min(ground_y - self.h, self.y)
         end,
         draw = function(self)
             if self.y < 0 - self.h then
                 local x = self.x + 13
-                local distance_from_ground = ceil((ground_y - self.y) / one_foot_in_pixels)
+                local distance_from_ground =
+                    ceil((ground_y - self.y) / one_foot_in_pixels)
                 print("\x8f", x, 0, 7) -- we use the top half of the diamond symbol as the pointy part of the height box
-                print_in_box(distance_from_ground.."ft", x + 4, 6, 7, 0)
+                print_in_box(distance_from_ground .. "ft", x + 4, 6, 7, 0)
             else
                 palt(0, false)
                 palt(15, true)
