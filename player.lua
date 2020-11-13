@@ -55,11 +55,10 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
         end,
         draw = function(self)
             if self.y < 0 - self.h then
-                color(15)
                 local x = self.x + 13
                 local distance_from_ground = ceil((ground_y - self.y) / one_foot_in_pixels)
-                print("\x8f", x, 0) -- we use the top half of the diamond symbol as the pointy part of the height box
-                print_in_box(distance_from_ground.."ft", x + 4, 6, 15, 0)
+                print("\x8f", x, 0, 7) -- we use the top half of the diamond symbol as the pointy part of the height box
+                print_in_box(distance_from_ground.."ft", x + 4, 6, 7, 0)
             else
                 palt(0, false)
                 palt(15, true)

@@ -20,12 +20,12 @@ function make_cannon()
         end,
         draw_power_bar = function(self)
             local max_bar_w = self.shot_timer_cycle_time / 2
-            local label_x = 8
+            local label_x = 4
             local bar_x = label_x + 6 * 4 + 1
             local bar_w = self.power
             local bar_h = 4
-            local y = 8
-            print("power:", label_x, y, 7)
+            local y = 120
+            print("power:", label_x, y, 0)
             rect(bar_x - 1, y - 1, bar_x + max_bar_w + 1, y + bar_h + 1, 0)
 
             rectfill(bar_x, y, bar_x + bar_w, y + bar_h, 8)

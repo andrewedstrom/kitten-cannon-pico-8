@@ -74,9 +74,15 @@ function _draw()
         for obj in all(obstacles) do
             obj:draw()
         end
-        camera(0, 0)
-        print(flr(player.feet_traveled) .. "ft", 8, 16, 7)
     end
+    camera(0, 0)
+    draw_hud()
+end
+
+function draw_hud()
+    rectfill(0,117,128,128,7)
+    if player then print(flr(player.feet_traveled) .. "ft", 4, 4, 7) end
+
     cannon:draw_power_bar()
     -- print("fps:" .. stat(7), 8, 24, 7)
     -- print("cpu:" .. stat(1), 8, 32, 7)
