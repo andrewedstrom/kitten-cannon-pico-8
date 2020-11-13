@@ -95,8 +95,6 @@ function infinitely_scroll()
     end
 end
 
-
-
 function lines_overlapping(min1, max1, min2, max2)
 	return max1 > min2 and max2 > min1
 end
