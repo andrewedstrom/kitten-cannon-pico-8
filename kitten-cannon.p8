@@ -98,12 +98,12 @@ end
 function make_trampoline(x)
     return {
         x = x,
-        y = ground_y - 8,
+        y = ground_y - 7,
         w = 18,
-        h = 7,
+        h = 6,
         sh = 10,
         bounce_multiplier = 1.25,
-        boost_multiplier = 1.05,
+        boost_multiplier = 1,
         draw = function(self)
             palt(0, false)
             palt(12, true)
