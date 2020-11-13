@@ -49,6 +49,8 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                                      hitbox.y + hitbox.h) then
                     self.dy = -abs(self.dy * obstacle.bounce_multiplier)
                     self.dx = self.dx * obstacle.boost_multiplier
+
+                    self.y = min(ground_y - self.h + obstacle.h / 2, self.y)
                 end
             end
         end,
