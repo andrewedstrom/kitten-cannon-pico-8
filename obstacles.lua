@@ -17,7 +17,6 @@ function make_trampoline(x)
             -- rect(self.x,self.y,self.x+self.w,self.y+self.h,7)
             pal()
         end,
-        update = function(self)
-        end
+        update = function(self) end
     }
 end

@@ -2,7 +2,6 @@
 -- player
 
 function make_player(angle, cannon_x, cannon_y, cannon_length, power)
-    -- precompute trig
     local ca = cos(angle)
     local sa = sin(angle)
 
@@ -21,10 +20,10 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             -- gravity
             self.dy = self.dy + gravity
 
-            if hit_ground(self.x, self.y, self.w-1, self.h) then
+            if hit_ground(self.x, self.y, self.w - 1, self.h) then
                 self.dy = -abs(self.dy * self.bounce)
                 if abs(self.dy) < 1.5 then
-                    self.on_ground=true
+                    self.on_ground = true
                     game_state = "landed"
                 end
 
@@ -34,7 +33,11 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             -- check for collisions
             local hitbox = self:hitbox()
             for obstacle in all(obstacles) do
-                if rects_overlapping(obstacle.x, obstacle.y, obstacle.x + obstacle.w, obstacle.y + obstacle.h, hitbox.x, hitbox.y, hitbox.x + hitbox.w, hitbox.y + hitbox.h) then
+                if rects_overlapping(obstacle.x, obstacle.y,
+                                     obstacle.x + obstacle.w,
+                                     obstacle.y + obstacle.h, hitbox.x,
+                                     hitbox.y, hitbox.x + hitbox.w,
+                                     hitbox.y + hitbox.h) then
                     self.dy = -abs(self.dy * obstacle.bounce_multiplier)
                     self.dx = self.dx * obstacle.boost_multiplier
                 end
@@ -44,7 +47,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             if not self.on_ground then
                 self.y = self.y + self.dy
                 self.x = self.x + self.dx
-                self.feet_traveled += self.dx / 8
+                self.feet_traveled = self.feet_traveled + self.dx / 8
             end
 
             -- kitten cannot go below ground
@@ -67,7 +70,6 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
     }
 end
 
---todo just move to player
 function hit_ground(x, y, w, h)
     local i
     for i = x, x + w do
