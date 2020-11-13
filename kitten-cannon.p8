@@ -5,7 +5,6 @@ __lua__
 -- by andrew edstrom
 
 -- todo
--- hit x at right time to determine initial velocity
 -- print angle
 -- tnt
 -- fly traps
@@ -54,6 +53,10 @@ function _update60()
     for obj in all(obstacles) do
         obj:update()
     end
+
+    if player then
+        infinitely_scroll()
+    end
 end
 
 function _draw()
@@ -86,6 +89,15 @@ end
 function camera_follow()
     local cam_x = max(0, player.x - 60)
     camera(cam_x, 0)
+end
+
+function infinitely_scroll()
+    local halfway_through_second_to_last_map_screen = 104
+    if player.x >= halfway_through_second_to_last_map_screen*8 then
+        -- teleport to second map screen
+        local how_far_over = player.x -(halfway_through_second_to_last_map_screen * 8)
+        player.x = 24 * 8 + how_far_over
+    end
 end
 
 function make_trampoline(x)
@@ -218,14 +230,6 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
 
             -- kitten cannot go below ground
             self.y = min(ground_y - self.h, self.y)
-
-            -- infinite scrolling
-            local halfway_through_second_to_last_map_screen = 104
-            if self.x >= halfway_through_second_to_last_map_screen*8 then
-                -- teleport to second map screen
-                local how_far_over = self.x -(halfway_through_second_to_last_map_screen * 8)
-                self.x = 24 * 8 + how_far_over
-            end
         end,
         draw = function(self)
             palt(0, false)
