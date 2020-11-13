@@ -47,17 +47,25 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             if not self.on_ground then
                 self.y = self.y + self.dy
                 self.x = self.x + self.dx
-                self.feet_traveled = self.feet_traveled + self.dx / 8
+                self.feet_traveled = self.feet_traveled + self.dx / one_foot_in_pixels
             end
 
             -- kitten cannot go below ground
             self.y = min(ground_y - self.h, self.y)
         end,
         draw = function(self)
-            palt(0, false)
-            palt(15, true)
-            sspr(8, 0, self.w + 1, self.h + 1, self.x, self.y)
-            pal()
+            if self.y < 0 - self.h then
+                color(15)
+                local x = self.x + 13
+                local distance_from_ground = ceil((ground_y - self.y) / one_foot_in_pixels)
+                print("\x8f", x, 0) -- we use the top half of the diamond symbol as the pointy part of the height box
+                print_in_box(distance_from_ground.."ft", x + 4, 6, 15, 0)
+            else
+                palt(0, false)
+                palt(15, true)
+                sspr(8, 0, self.w + 1, self.h + 1, self.x, self.y)
+                pal()
+            end
         end,
         hitbox = function(self)
             return {

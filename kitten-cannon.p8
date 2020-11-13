@@ -28,6 +28,7 @@ local cannon
 local game_state --  "aiming", "flying", "landed"
 local obstacles
 local ground_y = 104
+local one_foot_in_pixels = 8
 
 function _init()
     cannon = make_cannon()
@@ -103,6 +104,7 @@ function rects_overlapping(left1, top1, right1, bottom1, left2, top2, right2, bo
 	return lines_overlapping(left1, right1, left2, right2) and lines_overlapping(top1, bottom1, top2, bottom2)
 end
 
+#include fancy-printing.lua
 #include obstacles.lua
 #include player.lua
 #include cannon.lua
