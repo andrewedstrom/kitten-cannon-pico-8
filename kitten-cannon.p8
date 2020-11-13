@@ -100,7 +100,7 @@ function make_trampoline(x)
         x = x,
         y = ground_y - 8,
         w = 18,
-        h = 6,
+        h = 7,
         sh = 10,
         bounce_multiplier = 1.25,
         boost_multiplier = 1.05,
@@ -198,7 +198,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
             self.dy = self.dy + gravity
 
             if hit_ground(self.x, self.y, self.w-1, self.h) then
-                self.dy = self.dy * -self.bounce
+                self.dy = -abs(self.dy * self.bounce)
                 if abs(self.dy) < 1.5 then
                     self.on_ground=true
                     game_state = "landed"
