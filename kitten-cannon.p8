@@ -29,8 +29,14 @@ local game_state --  "aiming", "flying", "landed"
 local obstacles
 local ground_y = 104
 local one_foot_in_pixels = 8
+local high_score = 0
 
 function _init()
+    new_run()
+end
+
+function new_run()
+    player = {}
     cannon = make_cannon()
     game_state = "aiming"
     obstacles = {
@@ -43,18 +49,18 @@ function _init()
 end
 
 function _update60()
-    if player then
-        player:update()
-    end
     if game_state == "aiming" then
         cannon:update()
-    end
-    for obj in all(obstacles) do
-        obj:update()
-    end
-
-    if player then
+    elseif game_state == "flying" then
+        player:update()
+        for obj in all(obstacles) do
+            obj:update()
+        end
         infinitely_scroll()
+    else
+        if btn(4) or btn(5) then
+            new_run()
+        end
     end
 end
 
@@ -78,6 +84,17 @@ function _draw()
     end
     camera(0, 0)
     draw_hud()
+
+    if game_state == "landed" then
+        --todo print this in nicer box
+        local x = 31
+        local y = 40
+        print("your score: "..flr(player.feet_traveled) .. "ft", x, y, 7)
+        print("high score: ".. high_score .. "ft", x, y + 8, 7)
+        local high_score_col = flr(player.feet_traveled) == high_score and 10 or 7
+        print(high_score .. "ft", x + 12 * 4, y + 8, high_score_col)
+        print("press \x97 to play again", x - 10, y + 32, 7)
+    end
 end
 
 function draw_hud()
@@ -85,6 +102,9 @@ function draw_hud()
     if player then print(flr(player.feet_traveled) .. "ft", 4, 4, 7) end
 
     cannon:draw_power_bar()
+    local high_score_string = "hi: " .. high_score .. "ft"
+    local high_score_x = 124 - #high_score_string * 4
+    print(high_score_string, high_score_x, 120, 0)
     -- print("fps:" .. stat(7), 8, 24, 7)
     -- print("cpu:" .. stat(1), 8, 32, 7)
 end

@@ -15,7 +15,7 @@ function make_cannon()
         draw = function(self)
             -- don't bother drawing if offscreen
             -- might be off by a few pixels
-            if player and player.x > 188 then return end
+            if game_state == "flying" and player.x > 188 then return end
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, 0, 6, self.angle, 12)
             local base_x = self.x-14
             local base_y = self.y-8
@@ -43,7 +43,7 @@ function make_cannon()
             -- limit cannon angle
             self.angle = mid(0, self.angle, 0.2)
 
-            if btn(4) or btn(5) then
+            if btnp(4) or btnp(5) then
                 game_state = "flying"
                 local shot_power = self.power
                 player = make_player(self.angle, self.x, self.y, self.length,

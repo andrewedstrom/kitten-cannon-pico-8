@@ -25,6 +25,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                 if abs(self.dy) < 1.5 then
                     self.on_ground = true
                     game_state = "landed"
+                    high_score = max(high_score, flr(player.feet_traveled))
                 end
 
                 self.dx = self.dx * 0.7
