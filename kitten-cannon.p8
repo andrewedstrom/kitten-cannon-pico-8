@@ -87,13 +87,18 @@ function _draw()
 
     if game_state == "landed" then
         --todo print this in nicer box
-        local x = 31
-        local y = 40
-        print("your score: "..flr(player.feet_traveled) .. "ft", x, y, 7)
-        print("high score: ".. high_score .. "ft", x, y + 8, 7)
-        local high_score_col = flr(player.feet_traveled) == high_score and 10 or 7
-        print(high_score .. "ft", x + 12 * 4, y + 8, high_score_col)
-        print("press \x97 to play again", x - 10, y + 32, 7)
+        local x = 30
+        local y = 32
+        local new_record = flr(player.feet_traveled) == high_score
+        local message = "stuck the landing!"
+        if new_record then message = "you set a record!" end
+        print(message,  64 - #message * 2, y, 7)
+        print("your score: " .. flr(player.feet_traveled) .. "ft", x, y + 8, 7)
+        print("high score: " .. high_score .. "ft", x, y + 16, 7)
+        local high_score_col = new_record and 10 or 7
+        print(high_score .. "ft", x + 12 * 4, y + 16, high_score_col)
+        local play_again_text = "press \x97 to play again"
+        print(play_again_text, 64 - #play_again_text * 2, y + 40, 7)
     end
 end
 
@@ -103,7 +108,7 @@ function draw_hud()
 
     cannon:draw_power_bar()
     local high_score_string = "hi: " .. high_score .. "ft"
-    local high_score_x = 124 - #high_score_string * 4
+    local high_score_x = 126 - #high_score_string * 4
     print(high_score_string, high_score_x, 120, 0)
     -- print("fps:" .. stat(7), 8, 24, 7)
     -- print("cpu:" .. stat(1), 8, 32, 7)
