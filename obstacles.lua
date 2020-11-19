@@ -21,3 +21,24 @@ function make_trampoline(x)
         update = function(self) end
     }
 end
+
+function make_tnt(x)
+    return {
+        x = x,
+        y = ground_y - 14,
+        w = 15,
+        h = 15,
+        sh = 15,
+        sw = 15,
+        -- todo should tnt cause bounce? Or should it apply a consistent amount of force
+        bounce_multiplier = 3,
+        boost_multiplier = 1.5,
+        draw = function(self)
+            palt(0, false)
+            -- palt(12, true)
+            sspr(96, 0, self.sw, self.sh, self.x, self.y)
+            pal()
+        end,
+        update = function(self) end
+    }
+end
