@@ -46,7 +46,7 @@ function make_cannon()
             if btnp(4) or btnp(5) then
                 game_state = "flying"
                 local shot_power = self.power
-                player = make_player(self.angle, self.x, self.y, self.length,
+                player = make_kitten(self.angle, self.x, self.y, self.length,
                                      shot_power)
             else
                 self.timer = (self.timer + 1) % self.shot_timer_cycle_time

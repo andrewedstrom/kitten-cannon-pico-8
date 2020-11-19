@@ -1,7 +1,7 @@
 -->8
--- player
+-- kitten
 
-function make_player(angle, cannon_x, cannon_y, cannon_length, power)
+function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
     local ca = cos(angle)
     local sa = sin(angle)
 
@@ -48,10 +48,7 @@ function make_player(angle, cannon_x, cannon_y, cannon_length, power)
                                      obstacle.y + obstacle.h, hitbox.x,
                                      hitbox.y, hitbox.x + hitbox.w,
                                      hitbox.y + hitbox.h) then
-                    self.dy = -abs(self.dy * obstacle.bounce_multiplier)
-                    self.dx = self.dx * obstacle.boost_multiplier
-
-                    self.y = min(ground_y - self.h + obstacle.h / 2, self.y)
+                    obstacle:collide(self)
                 end
             end
         end,
