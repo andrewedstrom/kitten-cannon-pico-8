@@ -13,7 +13,6 @@ function print_in_box(message, x, y, box_color, text_color)
     rectfill(box_left, box_top + 2, box_right, box_bottom - 2, box_color)
 
     print(message, x - message_width_px / 2, y, text_color)
-
 end
 
 function centered_print(text, x, y, col, outline_col)

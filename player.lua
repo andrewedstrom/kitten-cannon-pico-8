@@ -43,11 +43,18 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
             -- check for collisions
             local hitbox = self:hitbox()
             for obstacle in all(obstacles) do
-                if rects_overlapping(obstacle.x, obstacle.y,
-                                     obstacle.x + obstacle.w,
-                                     obstacle.y + obstacle.h, hitbox.x,
-                                     hitbox.y, hitbox.x + hitbox.w,
-                                     hitbox.y + hitbox.h) then
+                if
+                    rects_overlapping(
+                        obstacle.x,
+                        obstacle.y,
+                        obstacle.x + obstacle.w,
+                        obstacle.y + obstacle.h,
+                        hitbox.x,
+                        hitbox.y,
+                        hitbox.x + hitbox.w,
+                        hitbox.y + hitbox.h
+                    )
+                 then
                     obstacle:collide(self)
                 end
             end
@@ -55,8 +62,7 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
         draw = function(self)
             if self.y < 0 - self.h then
                 local x = self.x + 13
-                local distance_from_ground =
-                    ceil((ground_y - self.y) / one_foot_in_pixels)
+                local distance_from_ground = ceil((ground_y - self.y) / one_foot_in_pixels)
                 print("\x8f", x, 0, 7) -- we use the top half of the diamond symbol as the pointy part of the height box
                 print_in_box(distance_from_ground .. "ft", x + 4, 6, 7, 0)
             else

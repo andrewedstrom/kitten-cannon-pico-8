@@ -6,12 +6,13 @@ __lua__
 
 -- todo
 -- print angle
--- tnt
 -- fly traps
--- score when you come to a stop
 -- explosion
 -- loop obstacles
 -- randomly generate obstacles
+-- paralax background?
+-- draw cannon in code
+-- more messages end of game
 
 -- obstacle ideas:
 -- yarn
