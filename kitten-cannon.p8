@@ -13,6 +13,8 @@ __lua__
 -- paralax background?
 -- draw cannon in code
 -- more messages end of game
+-- animate kitten
+-- animate trampoline
 
 -- obstacle ideas:
 -- yarn
