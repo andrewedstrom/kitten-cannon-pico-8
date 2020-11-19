@@ -39,14 +39,12 @@ function new_run()
     player = {}
     cannon = make_cannon()
     game_state = "aiming"
-    obstacles = {
-        make_trampoline(384),
-        make_tnt(480),
-        make_trampoline(550),
-        make_tnt(650),
-        make_trampoline(704),
-
-    }
+    obstacles = {}
+    make_trampoline(384)
+    make_tnt(480)
+    make_trampoline(550)
+    make_tnt(650)
+    make_trampoline(704)
 end
 
 function _update60()
@@ -54,9 +52,6 @@ function _update60()
         cannon:update()
     elseif game_state == "flying" then
         player:update()
-        for obj in all(obstacles) do
-            obj:update()
-        end
         infinitely_scroll()
     else
         if btn(4) or btn(5) then
