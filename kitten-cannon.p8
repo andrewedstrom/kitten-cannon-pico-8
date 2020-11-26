@@ -29,10 +29,11 @@ local camera_pos
 local feet_traveled
 local cannon
 local game_state --  "aiming", "flying", "landed"
-local obstacles
+local objects
 local ground_y = 104
 local one_foot_in_pixels = 8
 local high_score = 0
+local coins_collected
 
 function _init()
     new_run()
@@ -42,12 +43,18 @@ function new_run()
     player = {}
     cannon = make_cannon()
     game_state = "aiming"
-    obstacles = {}
+    objects = {}
+    coins_collected = 0
     make_trampoline(384)
     make_tnt(480)
     make_trampoline(550)
     make_tnt(650)
     make_trampoline(704)
+    random_coin()
+    random_coin()
+    random_coin()
+    random_coin()
+    random_coin()
 end
 
 function _update60()
@@ -69,7 +76,7 @@ function _draw()
     if game_state == "aiming" then
         map(0, 0, 0, 0, 128, 16)
         cannon:draw()
-        for obj in all(obstacles) do
+        for obj in all(objects) do
             obj:draw()
         end
     else
@@ -77,7 +84,7 @@ function _draw()
         map(0, 0, 0, 0, 128, 16)
         cannon:draw()
         player:draw()
-        for obj in all(obstacles) do
+        for obj in all(objects) do
             obj:draw()
         end
     end
@@ -103,7 +110,10 @@ end
 
 function draw_hud()
     rectfill(0,117,128,128,7)
-    if player then print(flr(player.feet_traveled) .. "ft", 4, 4, 7) end
+    color(7)
+
+    if player then print(flr(player.feet_traveled) .. "ft", 4, 4) end
+    print("coins: " .. coins_collected, 4, 10)
 
     cannon:draw_power_bar()
     local high_score_string = "hi: " .. high_score .. "ft"
@@ -136,7 +146,7 @@ function rects_overlapping(left1, top1, right1, bottom1, left2, top2, right2, bo
 end
 
 #include fancy-printing.lua
-#include obstacles.lua
+#include objects.lua
 #include player.lua
 #include cannon.lua
 #include sprite-rotate.lua
@@ -174,12 +184,12 @@ __gfx__
 00000000d6fffffffffffffd5666666dfffccccccccccccccccccccccccccccc2888888222dddd6422dddd44cccccccccccccccccccccccccccccccccccccccc
 00000000d6ffffffffffffd666666666fffccccccccccccccccccccccccccccc288888822222224442222244cccccccccccccccccccccccccccccccccccccccc
 00000000d666ffffffff000666066606600ccccccccccccccccccccccccccccc222222224444444444444444cccccccccccccccccccccccccccccccccccccccc
-00000000fd66ffffffffffd6660666066ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000fd66ffffffff000666660666600ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000fd666fffffffffd66660e0666ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000ffdd66666666666d666666666ffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000ffffd66666666666d6666666fffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000fffffd66666666666666666ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd66ffffffffffd6660666066ffcccccc9aaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd66ffffffff000666660666600ccccc9aa9aacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fd666fffffffffd66660e0666ffccccc9aaa9acccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffdd66666666666d666666666ffccccc9aa9aacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000ffffd66666666666d6666666fffccccc9aaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+00000000fffffd66666666666666666ffffcccccc9aaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00000000fffffd66666666666666766ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00000000fffffd66666666666667776ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00000000ffffd666666666666777775ffffccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

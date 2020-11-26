@@ -42,20 +42,20 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
 
             -- check for collisions
             local hitbox = self:hitbox()
-            for obstacle in all(obstacles) do
+            for obj in all(objects) do
                 if
                     rects_overlapping(
-                        obstacle.x,
-                        obstacle.y,
-                        obstacle.x + obstacle.w,
-                        obstacle.y + obstacle.h,
+                        obj.x,
+                        obj.y,
+                        obj.x + obj.w,
+                        obj.y + obj.h,
                         hitbox.x,
                         hitbox.y,
                         hitbox.x + hitbox.w,
                         hitbox.y + hitbox.h
                     )
                  then
-                    obstacle:collide(self)
+                    obj:collide(self)
                 end
             end
         end,

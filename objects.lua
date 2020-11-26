@@ -1,8 +1,8 @@
 -->8
--- obstacles
+-- objects
 
 function make_trampoline(x)
-    make_obstacle(
+    make_object(
         x,
         ground_y - 9,
         20,
@@ -26,7 +26,7 @@ function make_trampoline(x)
 end
 
 function make_tnt(x)
-    make_obstacle(
+    make_object(
         x,
         ground_y - 14,
         15,
@@ -51,7 +51,38 @@ function make_tnt(x)
     )
 end
 
-function make_obstacle(x, y, w, h, sw, sh, props)
+function make_coin(x, y)
+    make_object(
+        x,
+        y,
+        6,
+        6,
+        6,
+        6,
+        {
+            collected = false,
+            draw = function(self)
+                if not self.collected then
+                    palt(12, true)
+                    spr(69, self.x, self.y)
+                    pal()
+                end
+            end,
+            collide = function(self, kitten)
+                self.collected = true
+                coins_collected += 1
+            end
+        }
+    )
+end
+
+function random_coin()
+    local x = flr(rnd(500) + 120)
+    local y = flr(rnd(80))
+    make_coin(x, y)
+end
+
+function make_object(x, y, w, h, sw, sh, props)
     local ob = {
         x = x,
         y = y,
@@ -70,6 +101,6 @@ function make_obstacle(x, y, w, h, sw, sh, props)
         ob[k] = v
     end
 
-    add(obstacles, ob)
+    add(objects, ob)
     return obj
 end
