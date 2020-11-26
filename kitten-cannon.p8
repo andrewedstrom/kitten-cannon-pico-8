@@ -34,6 +34,7 @@ local ground_y = 104
 local one_foot_in_pixels = 8
 local high_score = 0
 local coins_collected
+local max_coins_collected = 0
 
 function _init()
     new_run()
@@ -88,43 +89,64 @@ function _draw()
             obj:draw()
         end
     end
+
     camera(0, 0)
-    draw_hud()
-
-    if game_state == "landed" then
-       draw_run_report()
+    if game_state == "flying" then
+        draw_hud()
+    elseif game_state == "landed" then
+        draw_run_report()
     end
-end
+    draw_bottom_bar()
 
-function draw_run_report()
-    --todo print this in nicer box
-    local x = 30
-    local y = 32
-    local new_record = flr(player.feet_traveled) == high_score
-    local message = "stuck the landing!"
-    if new_record then message = "you set a record!" end
-    print(message,  64 - #message * 2, y, 7)
-    print("your score: " .. flr(player.feet_traveled) .. "ft", x, y + 8, 7)
-    print("high score: " .. high_score .. "ft", x, y + 16, 7)
-    local high_score_col = new_record and 10 or 7
-    print(high_score .. "ft", x + 12 * 4, y + 16, high_score_col)
-    local play_again_text = "press \x97 to play again"
-    print(play_again_text, 64 - #play_again_text * 2, y + 40, 7)
 end
 
 function draw_hud()
-    rectfill(0,117,128,128,7)
     color(7)
-
     if player then print(flr(player.feet_traveled) .. "ft", 4, 4) end
     print("coins: " .. coins_collected, 4, 10)
+    -- print("fps:" .. stat(7), 8, 24, 7)
+    -- print("cpu:" .. stat(1), 8, 32, 7)
+end
 
+function draw_bottom_bar()
+    rectfill(0,117,128,128,7)
     cannon:draw_power_bar()
     local high_score_string = "hi: " .. high_score .. "ft"
     local high_score_x = 126 - #high_score_string * 4
     print(high_score_string, high_score_x, 120, 0)
-    -- print("fps:" .. stat(7), 8, 24, 7)
-    -- print("cpu:" .. stat(1), 8, 32, 7)
+end
+
+function draw_run_report()
+    -- todo make it clear when there is a record
+    local x = 30
+    local y = 32
+
+    -- todo print this in nicer box
+    local box_color = 7
+    local box_left = 17
+    local box_right = 112
+    local box_top = y - 4
+    local box_bottom = y + 48
+    rectfill(box_left + 1, box_top + 1, box_right - 1, box_bottom - 1, box_color)
+    rectfill(box_left, box_top + 2, box_right, box_bottom - 2, box_color)
+
+    local new_distance_record = flr(player.feet_traveled) >= high_score
+    local new_coin_record = coins_collected >= max_coins_collected
+    local message = "stuck the landing!"
+    if new_distance_record or new_coin_record then
+        message = "you set a record!"
+    end
+    centered_print(message, 64, y)
+
+    local record_color = 14
+    local no_record_color = 0
+    local distance_col = new_distance_record and record_color or no_record_color
+    centered_print("distance: " .. flr(player.feet_traveled) .. "ft", 64, y + 8, distance_col)
+
+    local coin_color = new_coin_record and record_color or no_record_color
+    centered_print("coins: " .. coins_collected, 64, y + 16, coin_color)
+
+    centered_print("press \x97 to play again", 64, y + 40)
 end
 
 function camera_follow()

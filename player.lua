@@ -26,6 +26,7 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
                     self.on_ground = true
                     game_state = "landed"
                     high_score = max(high_score, flr(player.feet_traveled))
+                    max_coins_collected = max(max_coins_collected, coins_collected)
                 end
 
                 self.dx = self.dx * 0.7

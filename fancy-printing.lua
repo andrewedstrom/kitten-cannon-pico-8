@@ -15,7 +15,11 @@ function print_in_box(message, x, y, box_color, text_color)
     print(message, x - message_width_px / 2, y, text_color)
 end
 
-function centered_print(text, x, y, col, outline_col)
+function centered_print(message, x, y, col)
+    print(message, x - #message * 2, y, col or 0)
+end
+
+function centered_outlined_print(text, x, y, col, outline_col)
     outlined_print(text, x - #text * 2, y, col, outline_col)
 end
 
