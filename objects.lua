@@ -10,10 +10,14 @@ function new_set_of_objects()
     for x = min_x, max_x, 100 do
         -- don't want them evenly spaced
         local offset = flr(rnd(30))
-        if rnd() > 0.5 then
-            make_trampoline(x + offset)
+        local random_number = rnd()
+        local obstacle_x = x + offset
+        if random_number > 0.666 then
+            make_trampoline(obstacle_x)
+        elseif random_number > 0.333 then
+            make_tnt(obstacle_x)
         else
-            make_tnt(x + offset)
+            make_slime_block(obstacle_x)
         end
     end
 
@@ -52,10 +56,10 @@ function make_tnt(x)
     make_object(
         x,
         ground_y - 14,
-        15,
-        15,
-        15,
-        15,
+        16,
+        16,
+        16,
+        16,
         {
             vertical_explosion_force = 13,
             horizontal_explosion_force = 1.75,
@@ -68,6 +72,29 @@ function make_tnt(x)
             collide = function(self, kitten)
                 kitten.dy = -abs(kitten.dy) - self.vertical_explosion_force
                 kitten.dx = kitten.dx + self.horizontal_explosion_force
+                kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
+            end
+        }
+    )
+end
+
+function make_slime_block(x)
+    make_object(
+        x,
+        ground_y - 14,
+        16,
+        16,
+        16,
+        16,
+        {
+            bounce_multiplier = 1.55,
+            draw = function(self)
+                palt(0, false)
+                sspr(96, 16, self.sw, self.sh, self.x, self.y)
+                pal()
+            end,
+            collide = function(self, kitten)
+                kitten.dy = -abs(kitten.dy * self.bounce_multiplier)
                 kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
             end
         }
