@@ -95,6 +95,7 @@ function make_coin(x, y)
                 if not self.collected then
                     self.collected = true
                     coins_collected = coins_collected + 1
+                    sfx(0)
                 end
             end
         }
