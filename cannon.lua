@@ -4,7 +4,7 @@
 function make_cannon()
     return {
         x = 25,
-        y = 94,
+        y = 96,
         w = 62,
         h = 11,
         power = 0,
@@ -20,7 +20,7 @@ function make_cannon()
             end
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, 0, 6, self.angle, 12)
             local base_x = self.x - 14
-            local base_y = self.y - 6
+            local base_y = self.y - 8
             local base_x2 = base_x + 17
             local base_y2 = ground_y - 1
 
