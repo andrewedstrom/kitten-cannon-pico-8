@@ -31,7 +31,7 @@ function make_cannon()
             -- circfill(self.x - 2, self.y - 1, 2, 5)
             palt(0, false)
             palt(12, true)
-            sspr(112, 0, 16, 16, base_x, base_y)
+            sspr(112, 16, 16, 16, base_x, base_y)
         end,
         draw_power_bar = function(self)
             local max_bar_w = self.shot_timer_cycle_time / 2

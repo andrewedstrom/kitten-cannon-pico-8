@@ -69,7 +69,7 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
             else
                 palt(0, false)
                 palt(15, true)
-                sspr(8, 0, self.w + 1, self.h + 1, self.x, self.y)
+                sspr(64, 32, self.w + 1, self.h + 1, self.x, self.y)
                 pal()
             end
         end,
