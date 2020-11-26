@@ -92,20 +92,24 @@ function _draw()
     draw_hud()
 
     if game_state == "landed" then
-        --todo print this in nicer box
-        local x = 30
-        local y = 32
-        local new_record = flr(player.feet_traveled) == high_score
-        local message = "stuck the landing!"
-        if new_record then message = "you set a record!" end
-        print(message,  64 - #message * 2, y, 7)
-        print("your score: " .. flr(player.feet_traveled) .. "ft", x, y + 8, 7)
-        print("high score: " .. high_score .. "ft", x, y + 16, 7)
-        local high_score_col = new_record and 10 or 7
-        print(high_score .. "ft", x + 12 * 4, y + 16, high_score_col)
-        local play_again_text = "press \x97 to play again"
-        print(play_again_text, 64 - #play_again_text * 2, y + 40, 7)
+       draw_run_report()
     end
+end
+
+function draw_run_report()
+    --todo print this in nicer box
+    local x = 30
+    local y = 32
+    local new_record = flr(player.feet_traveled) == high_score
+    local message = "stuck the landing!"
+    if new_record then message = "you set a record!" end
+    print(message,  64 - #message * 2, y, 7)
+    print("your score: " .. flr(player.feet_traveled) .. "ft", x, y + 8, 7)
+    print("high score: " .. high_score .. "ft", x, y + 16, 7)
+    local high_score_col = new_record and 10 or 7
+    print(high_score .. "ft", x + 12 * 4, y + 16, high_score_col)
+    local play_again_text = "press \x97 to play again"
+    print(play_again_text, 64 - #play_again_text * 2, y + 40, 7)
 end
 
 function draw_hud()

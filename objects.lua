@@ -69,8 +69,10 @@ function make_coin(x, y)
                 end
             end,
             collide = function(self, kitten)
-                self.collected = true
-                coins_collected += 1
+                if not self.collected then
+                    self.collected = true
+                    coins_collected = coins_collected + 1
+                end
             end
         }
     )
