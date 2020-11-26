@@ -1,6 +1,29 @@
 -->8
 -- objects
 
+function new_set_of_objects()
+    objects = {}
+    local min_x = 384
+    local max_x = 704
+
+    local x
+    for x = min_x, max_x, 100 do
+        -- don't want them evenly spaced
+        local offset = flr(rnd(30))
+        if rnd() > 0.5 then
+            make_trampoline(x + offset)
+        else
+            make_tnt(x + offset)
+        end
+    end
+
+    for x = 1, 5 do
+        local coin_x = flr(rnd(max_x - min_x) + min_x)
+        local coin_y = flr(rnd(ground_y - 40)) + 15
+        make_coin(coin_x, coin_y)
+    end
+end
+
 function make_trampoline(x)
     make_object(
         x,
@@ -76,12 +99,6 @@ function make_coin(x, y)
             end
         }
     )
-end
-
-function random_coin()
-    local x = flr(rnd(500) + 120)
-    local y = flr(rnd(80))
-    make_coin(x, y)
 end
 
 function make_object(x, y, w, h, sw, sh, props)

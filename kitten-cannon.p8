@@ -44,18 +44,8 @@ function new_run()
     player = {}
     cannon = make_cannon()
     game_state = "aiming"
-    objects = {}
+    new_set_of_objects()
     coins_collected = 0
-    make_trampoline(384)
-    make_tnt(480)
-    make_trampoline(550)
-    make_tnt(650)
-    make_trampoline(704)
-    random_coin()
-    random_coin()
-    random_coin()
-    random_coin()
-    random_coin()
 end
 
 function _update60()
@@ -70,7 +60,6 @@ function _update60()
         end
     end
 end
-
 
 function _draw()
     cls()
@@ -117,11 +106,9 @@ function draw_bottom_bar()
 end
 
 function draw_run_report()
-    -- todo make it clear when there is a record
     local x = 30
     local y = 32
 
-    -- todo print this in nicer box
     local box_color = 7
     local box_left = 17
     local box_right = 112
@@ -155,11 +142,16 @@ function camera_follow()
 end
 
 function infinitely_scroll()
-    local halfway_through_second_to_last_map_screen = 104
-    if player.x >= halfway_through_second_to_last_map_screen * 8 then
+    local pixels_per_map_tile = 8
+    local halfway_through_second_to_last_map_screen = 104 * pixels_per_map_tile
+    local halfway_through_second_map_screen = 24 * pixels_per_map_tile
+    if player.x >= halfway_through_second_to_last_map_screen then
         -- teleport to second map screen
-        local how_far_over = player.x -(halfway_through_second_to_last_map_screen * 8)
-        player.x = 24 * 8 + how_far_over
+        local how_far_over = player.x - halfway_through_second_to_last_map_screen
+        player.x = halfway_through_second_map_screen + how_far_over
+
+        -- make new set of objects
+        new_set_of_objects()
     end
 end
 
