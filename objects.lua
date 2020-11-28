@@ -32,6 +32,7 @@ end
 
 function make_trampoline(x)
     make_object(
+        "obstacle",
         x,
         ground_y - 9,
         20,
@@ -56,6 +57,7 @@ end
 
 function make_swimming_pool(x)
     make_object(
+        "obstacle",
         x,
         ground_y - 12,
         26,
@@ -73,7 +75,6 @@ function make_swimming_pool(x)
                 if self.contains_cat then
                     sprite_x = 0
                     sprite_y = 64
-
                 end
                 sspr(sprite_x, sprite_y, self.sw, self.sh, self.x, self.y)
                 pal()
@@ -92,6 +93,7 @@ end
 
 function make_tnt(x)
     make_object(
+        "obstacle",
         x,
         ground_y - 14,
         16,
@@ -118,6 +120,7 @@ end
 
 function make_slime_block(x)
     make_object(
+        "obstacle",
         x,
         ground_y - 14,
         16,
@@ -167,8 +170,9 @@ function make_coin(x, y)
     )
 end
 
-function make_object(x, y, w, h, sw, sh, props)
+function make_object(kind, x, y, w, h, sw, sh, props)
     local ob = {
+        kind = kind,
         x = x,
         y = y,
         w = w,
@@ -188,4 +192,13 @@ function make_object(x, y, w, h, sw, sh, props)
 
     add(objects, ob)
     return obj
+end
+
+function foreach_object_of_kind(kind, callback)
+    local obj
+    for obj in all(objects) do
+        if obj.kind == kind then
+            callback(obj)
+        end
+    end
 end
