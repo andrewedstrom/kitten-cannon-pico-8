@@ -12,12 +12,14 @@ function new_set_of_objects()
         local offset = flr(rnd(30))
         local random_number = rnd()
         local obstacle_x = x + offset
-        if random_number > 0.666 then
+        if random_number > 0.75 then
             make_trampoline(obstacle_x)
-        elseif random_number > 0.333 then
+        elseif random_number > 0.5 then
             make_tnt(obstacle_x)
-        else
+        elseif random_number > 0.25 then
             make_slime_block(obstacle_x)
+        else
+            make_swimming_pool(obstacle_x)
         end
     end
 
@@ -47,6 +49,42 @@ function make_trampoline(x)
             collide = function(self, kitten)
                 kitten.dy = -abs(kitten.dy * self.bounce_multiplier)
                 kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
+            end
+        }
+    )
+end
+
+function make_swimming_pool(x)
+    make_object(
+        x,
+        ground_y - 12,
+        26,
+        6,
+        26,
+        16,
+        {
+            contains_cat = false,
+            bounce_multiplier = 1.25,
+            draw = function(self)
+                palt(0, false)
+                palt(12, true)
+                local sprite_x = 96
+                local sprite_y = 48
+                if self.contains_cat then
+                    sprite_x = 0
+                    sprite_y = 64
+
+                end
+                sspr(sprite_x, sprite_y, self.sw, self.sh, self.x, self.y)
+                pal()
+            end,
+            collide = function(self, kitten)
+                kitten.dy = 0
+                kitten.dx = 0
+                if kitten.last_y < ground_y - kitten.h - 3 then
+                    kitten.hide = true
+                    self.contains_cat = true
+                end
             end
         }
     )

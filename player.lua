@@ -16,7 +16,10 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
         bounce = 0.65,
         on_ground = false,
         angle = angle,
+        hide = false,
+        last_y = cannon_y + cannon_length * sa - 20,
         update = function(self)
+            self.last_y = self.y
             -- gravity
             self.dy = self.dy + gravity
 
@@ -61,16 +64,18 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
             end
         end,
         draw = function(self)
-            if self.y < 0 - self.h then
-                local x = self.x + 13
-                local distance_from_ground = ceil((ground_y - self.y) / one_foot_in_pixels)
-                print("\x8f", x, 0, 7) -- we use the top half of the diamond symbol as the pointy part of the height box
-                print_in_box(distance_from_ground .. "ft", x + 4, 6, 7, 0)
-            else
-                palt(0, false)
-                palt(15, true)
-                sspr(8, 0, self.w + 1, self.h + 1, self.x, self.y)
-                pal()
+            if not self.hide then
+                if self.y < 0 - self.h then
+                    local x = self.x + 13
+                    local distance_from_ground = ceil((ground_y - self.y) / one_foot_in_pixels)
+                    print("\x8f", x, 0, 7) -- we use the top half of the diamond symbol as the pointy part of the height box
+                    print_in_box(distance_from_ground .. "ft", x + 4, 6, 7, 0)
+                else
+                    palt(0, false)
+                    palt(15, true)
+                    sspr(8, 0, self.w + 1, self.h + 1, self.x, self.y)
+                    pal()
+                end
             end
         end,
         hitbox = function(self)
