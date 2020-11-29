@@ -192,6 +192,7 @@ function make_particle(x, y)
             dx = rnd(2) - 1,
             dy = rnd(2) - 3,
             life = 15,
+            orig_life = 15,
             speed = rnd(3) * 0.5,
             radius = rnd(6) + 2,
             gravity = 0.3,
@@ -203,19 +204,12 @@ function make_particle(x, y)
                 circfill(self.x, self.y, self.radius, self.color)
             end,
             update = function(self)
-                --move the particle based on
-                --the speed
                 self.x = self.x + self.dx
                 self.y = self.y + self.dy
-                --and gravity
-                self.dy = self.dy + self.gravity
 
-                --reduce the radius
-                --this is set to 90%, but
-                --could be altered
+                self.dy = self.dy + self.gravity
                 self.radius = self.radius * 0.9
 
-                --reduce the life
                 self.life = self.life - 1
 
                 --set the color
