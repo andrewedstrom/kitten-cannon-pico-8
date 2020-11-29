@@ -13,6 +13,10 @@ __lua__
 -- animate trampoline
 -- let this person know i used their particle system:
 -- https://www.lexaloffle.com/bbs/?pid=58211
+-- and let this person know  i used their particle system:
+-- https://www.lexaloffle.com/bbs/?tid=33987
+
+#include ps.lua
 
 local player
 local gravity = 0.4
@@ -26,20 +30,28 @@ local one_foot_in_pixels = 8
 local high_score = 0
 local coins_collected
 local max_coins_collected = 0
+local particle_emitters
 
 function _init()
     new_run()
 end
 
 function new_run()
+    -- initialize game
     player = {}
     cannon = make_cannon()
     game_state = "aiming"
     new_set_of_objects()
     coins_collected = 0
+
+    -- initialize particle emitter
+    prev_time = time()
+    particle_emitters = {}
 end
 
 function _update60()
+    update_time()
+
     if game_state == "aiming" then
         cannon:update()
     elseif game_state == "flying" then
@@ -55,6 +67,13 @@ function _update60()
         if obj:is_expired() then
             del(objects, obj)
         end
+    end
+    -- particle emitter
+    if particle_emitter then
+        particle_emitter.update(particle_emitter, delta_time)
+    end
+    for e in all(particle_emitters) do
+        e.update(e, delta_time)
     end
 end
 
@@ -73,6 +92,9 @@ function _draw()
         player:draw()
         for obj in all(objects) do
             obj:draw()
+        end
+        for e in all(particle_emitters) do
+            e.draw(e)
         end
     end
 
@@ -149,6 +171,7 @@ function infinitely_scroll()
 
         -- make new set of objects
         new_set_of_objects()
+        particle_emitters = {}
     end
 end
 
@@ -231,14 +254,14 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccc3b3b33ccc000c0c03b3000000
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccc333bcccc00cc0cc033300000ccccccccccccccccc000055555555555555550000ccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0c00cc0cccc00ccccccccccccccccccccc000055555555550000cccccccccc
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc0000ccc00c0000ccccccccccccccccccccccc000000000000ccccccccccccc
-ccccccccccdcccccdccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-cccccccccd5ddccd5dcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-cccccc000d566dd66d00cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-ccc00066d666666666d6000ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-000666600666066606d0666000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-06667707d666066606d7076660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-066677700666660666d0776660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-06667707d66660e066d7076660cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+ccccccccccdcccccdccccccccccccccc0000000000aaaa0000aaaa0000999900008888000088880000666600000000000000000000000000cccccccccccccccc
+cccccccccd5ddccd5dcccccccccccccc000aa0000a7777a00a7777a009777790087777800866668006555560006000606000000600000000cccccccccccccccc
+cccccc000d566dd66d00cccccccccccc00a77a00a777777aa777777a97777779876666788665566865000056065606560050005000000000cccccccccccccccc
+ccc00066d666666666d6000ccccccccc0a7777a0a777777aa777777a97766779876556788650056865000056006000600000000000000500cccccccccccccccc
+000666600666066606d0666000cccccc0a7777a0a777777aa777777a97766779876556788650056865000056000006000060000000000000cccccccccccccccc
+06667707d666066606d7076660cccccc00a77a00a777777aa777777a97777779876666788665566865000056060065600000050600500000cccccccccccccccc
+066677700666660666d0776660cccccc000aa0000a7777a00a7777a009777790087777800866668006555560656006000500000000000000cccccccccccccccc
+06667707d66660e066d7076660cccccc0000000000aaaa0000aaaa0000999900008888000088880000666600060000000000000000000000cccccccccccccccc
 00066677777777777777666000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 05000666666666666666600050cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 00505000000000000000050500cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

@@ -111,19 +111,53 @@ function make_tnt(x)
         {
             vertical_explosion_force = 13,
             horizontal_explosion_force = 1.75,
+            triggered = false,
             draw = function(self)
-                palt(0, false)
-                -- palt(12, true)
-                sspr(96, 0, self.sw, self.sh, self.x, self.y)
-                pal()
+                if not self.triggered then
+                    palt(0, false)
+                    sspr(96, 0, self.sw, self.sh, self.x, self.y)
+                    pal()
+                end
             end,
             collide = function(self, kitten)
-                kitten.dy = -abs(kitten.dy) - self.vertical_explosion_force
-                kitten.dx = kitten.dx + self.horizontal_explosion_force
-                kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
+                if not self.triggered then
+                    self.triggered = true
+                    kitten.dy = -abs(kitten.dy) - self.vertical_explosion_force
+                    kitten.dx = kitten.dx + self.horizontal_explosion_force
+                    kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
+                    make_explosion(self.x, self.y)
+                end
             end
         }
     )
+end
+
+function make_explosion(x, y)
+    local explo = emitter.create(x, y, 0, 30)
+    ps_set_size(explo, 4, 0, 3, 0)
+    ps_set_speed(explo, 0)
+    ps_set_life(explo, 1)
+    ps_set_colours(explo, {7, 6, 5})
+    ps_set_area(explo, 30, 30)
+    ps_set_burst(explo, true, 10)
+    add(particle_emitters, explo)
+    local spray = emitter.create(x, y, 0, 80)
+    ps_set_size(spray, 0)
+    ps_set_speed(spray, 20, 10, 20, 10)
+    ps_set_colours(spray, {7, 6, 5})
+    ps_set_life(spray, 0, 1.3)
+    ps_set_burst(spray, true, 30)
+    add(particle_emitters, spray)
+    local anim = emitter.create(x, y, 0, 18)
+    ps_set_speed(anim, 0)
+    ps_set_life(anim, 1)
+    ps_set_sprites(anim, {132, 135, 136, 137, 138, 139, 140, 140, 140, 141, 141, 141})
+    ps_set_area(anim, 30, 30)
+    ps_set_burst(anim, true, 6)
+    add(particle_emitters, anim)
+    for e in all(particle_emitters) do
+        e.start_emit(e)
+    end
 end
 
 function make_slime_block(x)

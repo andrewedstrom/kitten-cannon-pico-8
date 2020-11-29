@@ -4,11 +4,13 @@
 function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
     local ca = cos(angle)
     local sa = sin(angle)
-
+    local spawn_x = cannon_x + cannon_length * ca
+    local spawn_y = cannon_y + cannon_length * sa - 20
+    make_explosion(spawn_x, spawn_y)
     return {
         feet_traveled = 0,
-        x = cannon_x + cannon_length * ca,
-        y = cannon_y + cannon_length * sa - 20,
+        x = spawn_x,
+        y = spawn_y,
         dx = power * ca,
         dy = power * sa,
         w = 27,
