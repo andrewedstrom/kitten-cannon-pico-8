@@ -15,7 +15,7 @@ function make_cannon()
         draw = function(self)
             -- don't bother drawing if offscreen
             -- might be off by a few pixels
-            if game_state == "flying" and player.x > 188 then
+            if game_state ~= "aiming" and player.x > 188 then
                 return
             end
             spr_r(0, 6, self.x, self.y, 4.75, 1.25, 0, 6, self.angle, 12)
@@ -23,7 +23,6 @@ function make_cannon()
             local base_y = self.y - 8
             local base_x2 = base_x + 17
             local base_y2 = ground_y - 1
-
 
             -- draw base
             rectfill(base_x - 1, base_y - 1, base_x2 + 1, base_y2 + 1, 0)

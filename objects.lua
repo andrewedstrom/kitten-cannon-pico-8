@@ -12,15 +12,15 @@ function new_set_of_objects()
         local offset = flr(rnd(30))
         local random_number = rnd()
         local obstacle_x = x + offset
-        if random_number > 0.66 then
-            make_trampoline(obstacle_x)
-        elseif random_number > 0.33 then
-            make_tnt(obstacle_x)
-        elseif random_number > 0.16 then
-            make_slime_block(obstacle_x)
-        else
+        -- if random_number > 0.66 then
+            -- make_trampoline(obstacle_x)
+        -- elseif random_number > 0.33 then
+            -- make_tnt(obstacle_x)
+        -- elseif random_number > 0.16 then
+            -- make_slime_block(obstacle_x)
+        -- else
             make_swimming_pool(obstacle_x)
-        end
+        -- end
     end
 
     for x = 1, 5 do
@@ -88,11 +88,10 @@ function make_swimming_pool(x)
                         self.contains_cat = true
                         local x = self.x + self.w / 2
                         local y = self.y - 2
-                        make_particle(x, y, 1)
-                        make_particle(x, y, 1.2)
-                        make_particle(x, y, 0)
-                        make_particle(x, y, -1)
-                        make_particle(x, y, -1.2)
+                        local i
+                        for i = -2, 2, 0.2 do
+                            make_particle(x, y, i)
+                        end
                     end
                 end
             end
@@ -180,7 +179,7 @@ function make_coin(x, y)
     )
 end
 
-function make_particle(x, y, _direction)
+function make_particle(x, y, x_speed)
     make_object(
         "particle",
         x,
@@ -191,24 +190,25 @@ function make_particle(x, y, _direction)
         1,
         {
             c = y,
-            direction = _direction,
+            x_speed = x_speed,
+            y_speed = rnd(4) * 0.1,
             lifetime = 0,
-            speed = .5,
+            speed = rnd(3) * 0.5,
             draw = function(self)
                 pset(self.x, self.y, 7)
             end,
             update = function(self)
-                if self.direction == 0 then
+                if self.x_speed == 0 then
                     self.y = self.y - 2.5
                 else
-                    self.x = self.x + self.direction * self.speed
-                    self.y = self.c - (self.lifetime * self.lifetime) * .1
+                    self.x = self.x + self.x_speed * self.speed
+                    self.y = self.c - (self.lifetime * self.lifetime) * self.y_speed
                 end
 
                 self.lifetime = self.lifetime + 1
             end,
             is_expired = function(self)
-                return self.lifetime >= 20
+                return self.lifetime >= 10
             end
         }
     )
