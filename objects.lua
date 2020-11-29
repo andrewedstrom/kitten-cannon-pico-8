@@ -12,15 +12,15 @@ function new_set_of_objects()
         local offset = flr(rnd(30))
         local random_number = rnd()
         local obstacle_x = x + offset
-        -- if random_number > 0.66 then
-            -- make_trampoline(obstacle_x)
-        -- elseif random_number > 0.33 then
-            -- make_tnt(obstacle_x)
-        -- elseif random_number > 0.16 then
-            -- make_slime_block(obstacle_x)
-        -- else
+        if random_number > 0.66 then
+            make_trampoline(obstacle_x)
+        elseif random_number > 0.33 then
+            make_tnt(obstacle_x)
+        elseif random_number > 0.16 then
+            make_slime_block(obstacle_x)
+        else
             make_swimming_pool(obstacle_x)
-        -- end
+        end
     end
 
     for x = 1, 5 do
@@ -89,8 +89,8 @@ function make_swimming_pool(x)
                         local x = self.x + self.w / 2
                         local y = self.y - 2
                         local i
-                        for i = -2, 2, 0.2 do
-                            make_particle(x, y, i)
+                        for i = 1, 20 do
+                            make_particle(x, y)
                         end
                     end
                 end
@@ -179,7 +179,7 @@ function make_coin(x, y)
     )
 end
 
-function make_particle(x, y, x_speed)
+function make_particle(x, y)
     make_object(
         "particle",
         x,
@@ -189,26 +189,51 @@ function make_particle(x, y, x_speed)
         1,
         1,
         {
-            c = y,
-            x_speed = x_speed,
-            y_speed = rnd(4) * 0.1,
-            lifetime = 0,
+            dx = rnd(2) - 1,
+            dy = rnd(2) - 3,
+            life = 15,
             speed = rnd(3) * 0.5,
+            radius = rnd(6) + 2,
+            gravity = 0.3,
+            fade = 7,
+            color = 7,
             draw = function(self)
-                pset(self.x, self.y, 7)
+                pal()
+                palt()
+                circfill(self.x, self.y, self.radius, self.color)
             end,
             update = function(self)
-                if self.x_speed == 0 then
-                    self.y = self.y - 2.5
-                else
-                    self.x = self.x + self.x_speed * self.speed
-                    self.y = self.c - (self.lifetime * self.lifetime) * self.y_speed
-                end
+                --move the particle based on
+                --the speed
+                self.x = self.x + self.dx
+                self.y = self.y + self.dy
+                --and gravity
+                self.dy = self.dy + self.gravity
 
-                self.lifetime = self.lifetime + 1
+                --reduce the radius
+                --this is set to 90%, but
+                --could be altered
+                self.radius = self.radius * 0.9
+
+                --reduce the life
+                self.life = self.life - 1
+
+                --set the color
+                if type(self.fade) == "table" then
+                    --assign color from fade
+                    --this code works out how
+                    --far through the lifespan
+                    --the particle is and then
+                    --selects the color from the
+                    --table
+                    self.col = self.fade[flr(#self.fade * (self.life / self.orig_life)) + 1]
+                else
+                    --just use a fixed color
+                    self.color = self.fade
+                end
             end,
             is_expired = function(self)
-                return self.lifetime >= 10
+                return self.life < 0
             end
         }
     )

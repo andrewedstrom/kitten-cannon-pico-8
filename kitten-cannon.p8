@@ -5,23 +5,14 @@ __lua__
 -- by andrew edstrom
 
 -- todo
--- print angle
--- fly traps
 -- explosion
--- loop obstacles
--- randomly generate obstacles
 -- paralax background?
 -- draw cannon in code
 -- more messages end of game
 -- animate kitten
 -- animate trampoline
-
--- obstacle ideas:
--- yarn
--- ball pit
--- shiny objects?
--- swimming pool full of milk
--- just a gap in the map a la mario
+-- let this person know i used their particle system:
+-- https://www.lexaloffle.com/bbs/?pid=58211
 
 local player
 local gravity = 0.4
