@@ -26,12 +26,12 @@ function make_cannon()
 
 
             -- draw base
-            -- rectfill(base_x - 1, base_y - 1, base_x2 + 1, base_y2 + 1, 0)
-            -- rectfill(base_x, base_y, base_x2, base_y2, 6)
-            -- circfill(self.x - 2, self.y - 1, 2, 5)
-            palt(0, false)
-            palt(12, true)
-            sspr(112, 16, 16, 16, base_x, base_y)
+            rectfill(base_x - 1, base_y - 1, base_x2 + 1, base_y2 + 1, 0)
+            rectfill(base_x, base_y, base_x2, base_y2, 6)
+            circfill(self.x - 2, self.y - 1, 2, 5)
+            -- palt(0, false)
+            -- palt(12, true)
+            -- sspr(112, 16, 16, 16, base_x, base_y)
         end,
         draw_power_bar = function(self)
             local max_bar_w = self.shot_timer_cycle_time / 2

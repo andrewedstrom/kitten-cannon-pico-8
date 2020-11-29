@@ -12,11 +12,11 @@ function new_set_of_objects()
         local offset = flr(rnd(30))
         local random_number = rnd()
         local obstacle_x = x + offset
-        if random_number > 0.75 then
+        if random_number > 0.66 then
             make_trampoline(obstacle_x)
-        elseif random_number > 0.5 then
+        elseif random_number > 0.33 then
             make_tnt(obstacle_x)
-        elseif random_number > 0.25 then
+        elseif random_number > 0.16 then
             make_slime_block(obstacle_x)
         else
             make_swimming_pool(obstacle_x)
@@ -59,11 +59,11 @@ function make_swimming_pool(x)
     make_object(
         "obstacle",
         x,
-        ground_y - 12,
+        ground_y - 10,
         26,
         6,
         26,
-        16,
+        17,
         {
             contains_cat = false,
             bounce_multiplier = 1.25,
@@ -76,15 +76,24 @@ function make_swimming_pool(x)
                     sprite_x = 0
                     sprite_y = 64
                 end
-                sspr(sprite_x, sprite_y, self.sw, self.sh, self.x, self.y)
+                sspr(sprite_x, sprite_y, self.sw, self.sh, self.x, self.y - 2)
                 pal()
             end,
             collide = function(self, kitten)
-                kitten.dy = 0
-                kitten.dx = 0
-                if kitten.last_y < ground_y - kitten.h - 3 then
-                    kitten.hide = true
-                    self.contains_cat = true
+                if not self.contains_cat then
+                    kitten.dy = 0
+                    kitten.dx = 0
+                    if kitten.last_y < ground_y - kitten.h - 2 then
+                        kitten.hide = true
+                        self.contains_cat = true
+                        local x = self.x + self.w / 2
+                        local y = self.y - 2
+                        make_particle(x, y, 1)
+                        make_particle(x, y, 1.2)
+                        make_particle(x, y, 0)
+                        make_particle(x, y, -1)
+                        make_particle(x, y, -1.2)
+                    end
                 end
             end
         }
@@ -144,6 +153,7 @@ end
 
 function make_coin(x, y)
     make_object(
+        "obstacle",
         x,
         y,
         6,
@@ -170,6 +180,40 @@ function make_coin(x, y)
     )
 end
 
+function make_particle(x, y, _direction)
+    make_object(
+        "particle",
+        x,
+        y,
+        1,
+        1,
+        1,
+        1,
+        {
+            c = y,
+            direction = _direction,
+            lifetime = 0,
+            speed = .5,
+            draw = function(self)
+                pset(self.x, self.y, 7)
+            end,
+            update = function(self)
+                if self.direction == 0 then
+                    self.y = self.y - 2.5
+                else
+                    self.x = self.x + self.direction * self.speed
+                    self.y = self.c - (self.lifetime * self.lifetime) * .1
+                end
+
+                self.lifetime = self.lifetime + 1
+            end,
+            is_expired = function(self)
+                return self.lifetime >= 20
+            end
+        }
+    )
+end
+
 function make_object(kind, x, y, w, h, sw, sh, props)
     local ob = {
         kind = kind,
@@ -181,7 +225,12 @@ function make_object(kind, x, y, w, h, sw, sh, props)
         sw = sw,
         draw = function(self)
         end,
+        update = function(self)
+        end,
         collide = function(self, kitten)
+        end,
+        is_expired = function(self)
+            return false
         end
     }
 
