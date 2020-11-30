@@ -71,7 +71,7 @@ function make_swimming_pool(x)
                 palt(0, false)
                 palt(12, true)
                 local sprite_x = 96
-                local sprite_y = 48
+                local sprite_y = 46
                 if self.contains_cat then
                     sprite_x = 0
                     sprite_y = 64
