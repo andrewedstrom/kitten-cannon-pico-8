@@ -26,6 +26,7 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
             self.dy = self.dy + gravity
 
             if hit_ground(self.x, self.y, self.w - 1, self.h) then
+                sfx(2)
                 self.dy = -abs(self.dy * self.bounce)
                 if abs(self.dy) < 1.5 then
                     self.on_ground = true

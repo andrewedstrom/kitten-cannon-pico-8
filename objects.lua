@@ -48,6 +48,7 @@ function make_trampoline(x)
                 pal()
             end,
             collide = function(self, kitten)
+                sfx(3)
                 kitten.dy = -abs(kitten.dy * self.bounce_multiplier)
                 kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
             end
