@@ -133,6 +133,7 @@ function make_tnt(x)
 end
 
 function make_explosion(x, y)
+    sfx(1)
     local explo = emitter.create(x, y, 0, 30)
     ps_set_size(explo, 4, 0, 3, 0)
     ps_set_speed(explo, 0)
