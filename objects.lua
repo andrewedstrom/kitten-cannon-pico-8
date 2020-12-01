@@ -123,7 +123,6 @@ function make_tnt(x)
             collide = function(self, kitten)
                 if not self.triggered then
                     self.triggered = true
-                    shake = shake + 1
                     kitten.dy = -abs(kitten.dy) - self.vertical_explosion_force
                     kitten.dx = kitten.dx + self.horizontal_explosion_force
                     kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
@@ -136,6 +135,8 @@ end
 
 function make_explosion(x, y)
     sfx(1)
+    shake = shake + 1
+
     local explo = emitter.create(x, y, 0, 30)
     ps_set_size(explo, 4, 0, 3, 0)
     ps_set_speed(explo, 0)
