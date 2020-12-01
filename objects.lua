@@ -179,6 +179,7 @@ function make_slime_block(x)
                 pal()
             end,
             collide = function(self, kitten)
+                sfx(3)
                 kitten.dy = -abs(kitten.dy * self.bounce_multiplier)
                 kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)
             end
@@ -215,6 +216,7 @@ function make_coin(x, y)
     )
 end
 
+-- these particles are used for the milk splash
 function make_particle(x, y)
     make_object(
         "particle",
