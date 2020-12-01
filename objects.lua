@@ -123,6 +123,7 @@ function make_tnt(x)
             collide = function(self, kitten)
                 if not self.triggered then
                     self.triggered = true
+                    shake = shake + 1
                     kitten.dy = -abs(kitten.dy) - self.vertical_explosion_force
                     kitten.dx = kitten.dx + self.horizontal_explosion_force
                     kitten.y = min(ground_y - kitten.h + self.h / 3, kitten.y)

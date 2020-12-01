@@ -31,6 +31,9 @@ local high_score = 0
 local coins_collected
 local max_coins_collected = 0
 local particle_emitters
+local shake
+local shake_x
+local shake_y
 
 function _init()
     new_run()
@@ -43,6 +46,7 @@ function new_run()
     game_state = "aiming"
     new_set_of_objects()
     coins_collected = 0
+    shake = 0
 
     -- initialize particle emitter
     prev_time = time()
@@ -79,6 +83,7 @@ end
 
 function _draw()
     cls()
+    screen_shake()
     if game_state == "aiming" then
         map(0, 0, 0, 0, 128, 16)
         cannon:draw()
@@ -98,7 +103,7 @@ function _draw()
         end
     end
 
-    camera(0, 0)
+    camera_with_shake(0, 0)
     if game_state == "flying" then
         draw_hud()
     elseif game_state == "landed" then
@@ -108,6 +113,17 @@ function _draw()
 
     -- print("fps:" .. stat(7), 8, 24, 7)
     -- print("cpu:" .. stat(1), 8, 32, 7)
+end
+
+function screen_shake()
+    shake_x = (4 - rnd(8)) * shake
+    shake_y = (4 - rnd(8)) * shake
+    shake = shake * 0.8
+    if (shake < 0.05) shake=0
+end
+
+function camera_with_shake(x, y)
+    camera(x + shake_x, y + shake_y)
 end
 
 function draw_hud()
@@ -157,7 +173,7 @@ end
 
 function camera_follow()
     local cam_x = max(0, player.x - 60)
-    camera(cam_x, 0)
+    camera_with_shake(cam_x, 0)
 end
 
 function infinitely_scroll()
