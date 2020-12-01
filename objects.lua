@@ -86,6 +86,7 @@ function make_swimming_pool(x)
                     kitten.dx = 0
                     if kitten.last_y < ground_y - kitten.h - 2 then
                         kitten.hide = true
+                        kitten:land()
                         self.contains_cat = true
                         local x = self.x + self.w / 2
                         local y = self.y - 2

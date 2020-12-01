@@ -20,6 +20,12 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
         angle = angle,
         hide = false,
         last_y = cannon_y + cannon_length * sa - 20,
+        land = function(self)
+            self.on_ground = true
+            game_state = "landed"
+            high_score = max(high_score, flr(player.feet_traveled))
+            max_coins_collected = max(max_coins_collected, coins_collected)
+        end,
         update = function(self)
             self.last_y = self.y
             -- gravity
@@ -29,10 +35,7 @@ function make_kitten(angle, cannon_x, cannon_y, cannon_length, power)
                 sfx(2)
                 self.dy = -abs(self.dy * self.bounce)
                 if abs(self.dy) < 1.5 then
-                    self.on_ground = true
-                    game_state = "landed"
-                    high_score = max(high_score, flr(player.feet_traveled))
-                    max_coins_collected = max(max_coins_collected, coins_collected)
+                    self:land()
                 end
 
                 self.dx = self.dx * 0.7
